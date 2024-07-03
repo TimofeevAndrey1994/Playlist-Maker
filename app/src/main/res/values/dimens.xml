@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="defaultTextSize">22sp</dimen>
+    <dimen name="horizontal_default_padding">16dp</dimen>
+    <dimen name="top_default_padding">14dp</dimen>
+    <dimen name="button_corner_radius">16dp</dimen>
+    <dimen name="settings_item_height">61dp</dimen>
+    <dimen name="settings_item_text_size">16sp</dimen>
+</resources>
