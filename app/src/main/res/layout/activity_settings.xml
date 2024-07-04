@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
@@ -10,7 +11,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="@dimen/default_margin_from_top"
         android:background="@color/white"
         android:orientation="horizontal">
 
@@ -21,15 +22,15 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="6dp"
             android:contentDescription="@string/back_arrow_description"
-            android:src="@drawable/arrow_back"
-            android:foreground="?attr/selectableItemBackground"/>
+            android:foreground="?attr/selectableItemBackground"
+            android:src="@drawable/arrow_back" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="28dp"
             android:text="@string/settings_title"
-            android:textColor="@color/button_text_color"
+            android:textColor="@color/default_text_color"
             android:textSize="@dimen/defaultTextSize" />
 
     </LinearLayout>
@@ -38,83 +39,37 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/settings_item_height"
         android:layout_gravity="end"
-        android:layout_marginTop="10dp"
         android:text="@string/black_theme_title"
         android:textColor="@color/black"
         android:textSize="@dimen/settings_item_text_size" />
 
-
-    <FrameLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="@dimen/settings_item_height"
-        android:background="@color/white"
-        android:orientation="horizontal"
-        android:paddingTop="21dp">
+        android:gravity="center_vertical"
+        android:text="@string/share_app_title"
+        android:textColor="@color/black"
+        android:textSize="@dimen/settings_item_text_size"
+        app:drawableEndCompat="@drawable/share" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/share_app_title"
-            android:textColor="@color/black"
-            android:textSize="@dimen/settings_item_text_size" />
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:contentDescription="@string/share_app_description"
-            android:src="@drawable/share" />
-
-    </FrameLayout>
-
-    <FrameLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="@dimen/settings_item_height"
-        android:background="@color/white"
-        android:orientation="horizontal"
-        android:paddingTop="21dp">
+        android:gravity="center_vertical"
+        android:text="@string/text_to_support_title"
+        android:textColor="@color/black"
+        android:textSize="@dimen/settings_item_text_size"
+        app:drawableEndCompat="@drawable/support" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/text_to_support_title"
-            android:textColor="@color/black"
-            android:textSize="@dimen/settings_item_text_size" />
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:contentDescription="@string/text_to_support_description"
-            android:src="@drawable/support" />
-
-    </FrameLayout>
-
-    <FrameLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="@dimen/settings_item_height"
-        android:background="@color/white"
-        android:orientation="horizontal"
-        android:paddingTop="21dp">
+        android:gravity="center_vertical"
+        android:text="@string/user_agreement_title"
+        android:textColor="@color/black"
+        android:textSize="@dimen/settings_item_text_size"
+        android:paddingEnd="4dp"
+        app:drawableEndCompat="@drawable/arrow_forward" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/user_agreement_title"
-            android:textColor="@color/black"
-            android:textSize="@dimen/settings_item_text_size" />
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:contentDescription="@string/user_agreement_description"
-            android:src="@drawable/arrow_forward"
-            android:layout_marginEnd="4dp"/>
-
-    </FrameLayout>
 
 </LinearLayout>
