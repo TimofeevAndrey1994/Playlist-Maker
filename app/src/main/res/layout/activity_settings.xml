@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/white"
     android:orientation="vertical"
     android:paddingHorizontal="@dimen/horizontal_default_padding"
@@ -16,12 +15,14 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
+            android:id="@+id/arrow_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="6dp"
             android:contentDescription="@string/back_arrow_description"
             android:src="@drawable/arrow_back"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="6dp"/>
+            android:foreground="?attr/selectableItemBackground"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -40,7 +41,7 @@
         android:layout_marginTop="10dp"
         android:text="@string/black_theme_title"
         android:textColor="@color/black"
-        android:textSize="16sp" />
+        android:textSize="@dimen/settings_item_text_size" />
 
 
     <FrameLayout
@@ -56,7 +57,7 @@
             android:layout_gravity="start"
             android:text="@string/share_app_title"
             android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:textSize="@dimen/settings_item_text_size" />
 
         <ImageView
             android:layout_width="wrap_content"
@@ -80,7 +81,7 @@
             android:layout_gravity="start"
             android:text="@string/text_to_support_title"
             android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:textSize="@dimen/settings_item_text_size" />
 
         <ImageView
             android:layout_width="wrap_content"
@@ -104,14 +105,15 @@
             android:layout_gravity="start"
             android:text="@string/user_agreement_title"
             android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:textSize="@dimen/settings_item_text_size" />
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:contentDescription="@string/user_agreement_description"
-            android:src="@drawable/arrow_forward" />
+            android:src="@drawable/arrow_forward"
+            android:layout_marginEnd="4dp"/>
 
     </FrameLayout>
 
