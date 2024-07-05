@@ -1,20 +1,34 @@
 package com.example.playlistmaker
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        val buttonSearch = findViewById<Button>(R.id.button_search)
+        buttonSearch.setOnClickListener{
+            goToActivity(SearchActivity::class.java)
         }
+
+        val buttonMediaLibrary = findViewById<Button>(R.id.button_media_library)
+        buttonMediaLibrary.setOnClickListener {
+            goToActivity(MediaLibraryActivity::class.java)
+        }
+
+        val buttonSettings = findViewById<Button>(R.id.button_settings)
+        buttonSettings.setOnClickListener{
+            goToActivity(SettingsActivity::class.java)
+        }
+    }
+
+    private fun goToActivity(cls: Class<out Activity>){
+        val intent = Intent(this, cls)
+        startActivity(intent)
     }
 }
