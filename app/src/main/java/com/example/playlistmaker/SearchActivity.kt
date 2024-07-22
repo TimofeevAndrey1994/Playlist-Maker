@@ -63,6 +63,6 @@ class SearchActivity : AppCompatActivity() {
     }
 
     companion object{
-        const val EDIT_TEXT_SEARCH = "EDIT_TEXT_SEARCH"
+        private const val EDIT_TEXT_SEARCH = "EDIT_TEXT_SEARCH"
     }
 }
