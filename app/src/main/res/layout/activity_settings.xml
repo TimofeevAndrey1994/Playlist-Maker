@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:theme="@style/Theme.PlaylistMaker"
+    android:background="?attr/background"
     android:orientation="vertical"
     android:paddingHorizontal="@dimen/horizontal_default_padding"
     android:paddingTop="@dimen/top_default_padding">
@@ -12,7 +13,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/default_margin_from_top"
-        android:background="@color/white"
         android:orientation="horizontal">
 
         <ImageView
@@ -30,46 +30,42 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="28dp"
             android:text="@string/settings_title"
-            android:textColor="@color/default_text_color"
-            android:textSize="@dimen/defaultTextSize" />
+            android:textColor="?attr/colorOnSecondary"
+            android:textSize="@dimen/defaultTextSize"
+            android:fontFamily="@font/ys_display_medium"/>
 
     </LinearLayout>
 
     <androidx.appcompat.widget.SwitchCompat
         android:layout_width="match_parent"
         android:layout_height="@dimen/settings_item_height"
+        app:trackTint="?attr/trackTint"
+        app:thumbTint="?attr/thumbTint"
         android:layout_gravity="end"
         android:text="@string/black_theme_title"
-        android:textColor="@color/black"
-        android:textSize="@dimen/settings_item_text_size" />
+        android:textColor="?attr/colorOnSecondary"
+        android:textSize="@dimen/settings_item_text_size"
+        android:checked="false"
+        />
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/settings_item_height"
-        android:gravity="center_vertical"
+        android:id="@+id/textViewShare"
         android:text="@string/share_app_title"
-        android:textColor="@color/black"
-        android:textSize="@dimen/settings_item_text_size"
-        app:drawableEndCompat="@drawable/share" />
+        app:drawableEndCompat="@drawable/share"
+        style="@style/item_settings_style"/>
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/settings_item_height"
-        android:gravity="center_vertical"
+        android:id="@+id/textViewTextToSupport"
         android:text="@string/text_to_support_title"
-        android:textColor="@color/black"
-        android:textSize="@dimen/settings_item_text_size"
-        app:drawableEndCompat="@drawable/support" />
+        app:drawableEndCompat="@drawable/support"
+        style="@style/item_settings_style"/>
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/settings_item_height"
-        android:gravity="center_vertical"
+        android:id="@+id/textViewUserAgreement"
         android:text="@string/user_agreement_title"
-        android:textColor="@color/black"
-        android:textSize="@dimen/settings_item_text_size"
+        android:paddingStart="0dp"
         android:paddingEnd="4dp"
-        app:drawableEndCompat="@drawable/arrow_forward" />
-
+        app:drawableEndCompat="@drawable/arrow_forward"
+        style="@style/item_settings_style"/>
 
 </LinearLayout>
