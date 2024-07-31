@@ -38,7 +38,7 @@
 
     <androidx.appcompat.widget.SwitchCompat
         android:layout_width="match_parent"
-        android:layout_height="@dimen/settings_item_height"
+        android:layout_height="@dimen/item_height"
         app:trackTint="?attr/trackTint"
         app:thumbTint="?attr/thumbTint"
         android:layout_gravity="end"
