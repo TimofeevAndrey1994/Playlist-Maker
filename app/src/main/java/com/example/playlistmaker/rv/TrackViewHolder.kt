@@ -19,7 +19,7 @@ class TrackViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
     fun bind(model: Track){
         Glide.with(itemView)
             .load(model.artworkUrl100)
-            .placeholder(R.mipmap.ic_placeholder)
+            .placeholder(R.drawable.ic_placeholder)
             .transform(RoundedCorners(2))
             .into(trackCover)
 

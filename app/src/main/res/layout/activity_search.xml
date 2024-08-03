@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:paddingTop="@dimen/top_default_padding"
     android:theme="@style/Theme.PlaylistMaker"
@@ -46,6 +47,7 @@
         <EditText
             android:id="@+id/searchEditText"
             android:layout_width="match_parent"
+            android:textCursorDrawable="@drawable/edit_text_cursor"
             android:layout_height="36dp"
             android:hint="@string/search_title"
             android:drawablePadding="4dp"
@@ -77,6 +79,7 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:layoutManager="LinearLayoutManager"
         android:layout_marginTop="24dp"
         android:layout_marginStart="13dp"
         android:layout_marginEnd="20dp"/>
