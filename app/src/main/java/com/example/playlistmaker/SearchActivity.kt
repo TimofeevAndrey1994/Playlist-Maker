@@ -5,35 +5,79 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.playlistmaker.model.Track
+import com.example.playlistmaker.model.Song
+import com.example.playlistmaker.retrofit.ItunesAPI
+import com.example.playlistmaker.retrofit.ItunesResponse
 import com.example.playlistmaker.rv.TrackAdapter
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class SearchActivity : AppCompatActivity() {
 
-    private lateinit var searchEditText: EditText
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+    private val itunesService = retrofit.create(ItunesAPI::class.java)
+
+    private val searchEditText by lazy {
+        findViewById<EditText>(R.id.searchEditText)
+    }
+    private val btnRefresh by lazy {
+        findViewById<Button>(R.id.btnRefresh)
+    }
+    private val imgError by lazy {
+        findViewById<ImageView>(R.id.imgError)
+    }
+    private val textError by lazy {
+        findViewById<TextView>(R.id.textViewErrorMessage)
+    }
+    private val recyclerView by lazy{
+        findViewById<RecyclerView>(R.id.recyclerView)
+    }
+
+    private var songs: ArrayList<Song> = ArrayList()
+    private val adapter = TrackAdapter(songs)
+
     private var searchText = ""
+    private var currentState: ScreenState = ScreenState.StateWithData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
+        recyclerView.adapter = adapter
+
+        setScreenState(currentState)
 
         val arrowBack = findViewById<ImageView>(R.id.arrow_back_from_search)
-        arrowBack.setOnClickListener{
+        arrowBack.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
 
-        searchEditText = findViewById<EditText>(R.id.searchEditText)
+        searchEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                search(searchText)
+            }
+            false
+        }
 
         val clearButton = findViewById<ImageView>(R.id.clearIcon)
-        clearButton.setOnClickListener{
+        clearButton.setOnClickListener {
             searchEditText.setText("")
-            val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            val inputMethodManager =
+                getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
             inputMethodManager?.hideSoftInputFromWindow(it.windowToken, 0)
         }
 
@@ -43,20 +87,21 @@ class SearchActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                clearButton.visibility =  if (s.isNullOrEmpty()) { View.GONE } else { View.VISIBLE }
+                clearButton.visibility = if (s.isNullOrEmpty()) {
+                    View.GONE
+                } else {
+                    View.VISIBLE
+                }
                 searchText = searchEditText.text.toString()
             }
 
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-
+            override fun afterTextChanged(s: Editable?) {}
         }
-
         searchEditText.addTextChangedListener(textWatcher)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-        recyclerView.adapter = TrackAdapter(getMockData())
+        btnRefresh.setOnClickListener {
+            search(searchText)
+        }
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -69,17 +114,66 @@ class SearchActivity : AppCompatActivity() {
         outState.putString(EDIT_TEXT_SEARCH, searchText)
     }
 
-    companion object{
+    companion object {
         private const val EDIT_TEXT_SEARCH = "EDIT_TEXT_SEARCH"
+        private const val BASE_URL         = "https://itunes.apple.com"
     }
 
-    private fun getMockData(): List<Track>{
-        return listOf(
-            Track("Smells Like Teen Spirit", "Nirvana", "5:01", "https://is5-ssl.mzstatic.com/image/thumb/Music115/v4/7b/58/c2/7b58c21a-2b51-2bb2-e59a-9bb9b96ad8c3/00602567924166.rgb.jpg/100x100bb.jpg"),
-            Track("Billie Jean", "Michael Jackson", "4:35", "https://is5-ssl.mzstatic.com/image/thumb/Music125/v4/3d/9d/38/3d9d3811-71f0-3a0e-1ada-3004e56ff852/827969428726.jpg/100x100bb.jpg"),
-            Track("Stayin' Alive", "Bee Gees", "4:10", "https://is4-ssl.mzstatic.com/image/thumb/Music115/v4/1f/80/1f/1f801fc1-8c0f-ea3e-d3e5-387c6619619e/16UMGIM86640.rgb.jpg/100x100bb.jpg"),
-            Track("Whole Lotta Love", "Led Zeppelin", "5:33", "https://is2-ssl.mzstatic.com/image/thumb/Music62/v4/7e/17/e3/7e17e33f-2efa-2a36-e916-7f808576cf6b/mzm.fyigqcbs.jpg/100x100bb.jpg"),
-            Track("Sweet Child O'Mine", "Guns N' Roses", "5:03", "https://is5-ssl.mzstatic.com/image/thumb/Music125/v4/a0/4d/c4/a04dc484-03cc-02aa-fa82-5334fcb4bc16/18UMGIM24878.rgb.jpg/100x100bb.jpg")
-        )
+    private fun search(text: String) {
+        if (text.isEmpty()) return
+        songs.clear()
+        itunesService.getSongs(text)
+            .enqueue(object : Callback<ItunesResponse> {
+                override fun onResponse(
+                    call: Call<ItunesResponse>,
+                    response: Response<ItunesResponse>
+                ) {
+                    if (response.code() == 200) {
+                        val currentData = response.body()?.results!!
+                        if (currentData.isNotEmpty()) {
+                            songs.addAll(currentData)
+                            adapter.notifyDataSetChanged()
+                            setScreenState(ScreenState.StateWithData)
+                        } else {
+                            setScreenState(ScreenState.ErrorOrEmptyState.NoData(getString(R.string.no_data)))
+                        }
+                    } else {
+                        setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(getString(R.string.error_connection)))
+                    }
+                }
+
+                override fun onFailure(call: Call<ItunesResponse>, t: Throwable) {
+                    setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(getString(R.string.error_connection)))
+                }
+
+            })
+    }
+
+    private fun setScreenState(state: ScreenState) {
+        when(state){
+            is ScreenState.ErrorOrEmptyState -> {
+                imgError.setImageResource(state.imageRes)
+                imgError.visibility = View.VISIBLE
+
+                textError.text = state.errorText
+                textError.visibility = View.VISIBLE
+
+                btnRefresh.visibility = if (state.isButtonRefreshVisible) View.VISIBLE else View.GONE
+            }
+            is ScreenState.StateWithData -> {
+                imgError.visibility = View.GONE
+                textError.visibility = View.GONE
+                btnRefresh.visibility = View.GONE
+            }
+        }
+    }
+
+    sealed class ScreenState {
+        data object StateWithData : ScreenState()
+        sealed class ErrorOrEmptyState(@DrawableRes val imageRes: Int, val errorText: String, val isButtonRefreshVisible: Boolean
+        ): ScreenState() {
+            class ConnectionError(errorText: String): ErrorOrEmptyState(R.drawable.connection_error, errorText, true)
+            class NoData(errorText: String): ErrorOrEmptyState(R.drawable.nothing_to_show, errorText, false)
+        }
     }
 }

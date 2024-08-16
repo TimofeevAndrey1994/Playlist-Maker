@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <style name="Main.Theme.PlaylistMaker" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="background">@color/yp_blue</item>
     </style>
@@ -8,6 +8,7 @@
         <item name="colorOnSecondary">@color/yp_black</item>
         <item name="trackTint">@color/yp_light_gray</item>
         <item name="thumbTint">@color/yp_gray</item>
+        <item name="colorAccent">@color/white</item>
     </style>
     <style name="Theme.PlaylistMaker.EditText" parent="Theme.PlaylistMaker">
         <item name="colorPrimary">@color/yp_gray</item>

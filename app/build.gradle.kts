@@ -37,6 +37,9 @@ android {
 
 dependencies {
 
+    implementation(libs.retrofit)
+    implementation(libs.retrofit2.converter.gson)
+    implementation(libs.gson)
     implementation(libs.glide)
     annotationProcessor(libs.compiler)
     implementation(libs.androidx.core.ktx)

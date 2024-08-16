@@ -1,6 +1,6 @@
 package com.example.playlistmaker.model
 
-data class Track(
+data class Song(
     val trackName:  String,
     val artistName: String,
     val trackTime:  String,
