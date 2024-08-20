@@ -58,7 +58,7 @@
             android:inputType="text"
             android:maxLength="30"
             android:maxLines="1"
-            android:paddingStart="15.13dp"
+            android:paddingStart="13dp"
             android:singleLine="true"
             android:textColor="@color/yp_black"
             android:textColorHint="?attr/colorPrimary"

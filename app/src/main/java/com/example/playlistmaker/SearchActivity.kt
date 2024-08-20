@@ -13,7 +13,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.example.playlistmaker.databinding.ActivitySearchBinding
 import com.example.playlistmaker.model.Song
 import com.example.playlistmaker.retrofit.ItunesAPI
 import com.example.playlistmaker.retrofit.ItunesResponse
@@ -26,27 +28,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class SearchActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivitySearchBinding
+
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     private val itunesService = retrofit.create(ItunesAPI::class.java)
-
-    private val searchEditText by lazy {
-        findViewById<EditText>(R.id.searchEditText)
-    }
-    private val btnRefresh by lazy {
-        findViewById<Button>(R.id.btnRefresh)
-    }
-    private val imgError by lazy {
-        findViewById<ImageView>(R.id.imgError)
-    }
-    private val textError by lazy {
-        findViewById<TextView>(R.id.textViewErrorMessage)
-    }
-    private val recyclerView by lazy{
-        findViewById<RecyclerView>(R.id.recyclerView)
-    }
 
     private var songs: ArrayList<Song> = ArrayList()
     private val adapter = TrackAdapter(songs)
@@ -56,57 +44,50 @@ class SearchActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_search)
-        recyclerView.adapter = adapter
+        binding = ActivitySearchBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        setScreenState(currentState)
+        with (binding){
+            recyclerView.adapter = adapter
+            arrowBackFromSearch.setOnClickListener {
+                onBackPressedDispatcher.onBackPressed()
+            }
+            searchEditText.setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    search(searchText)
+                }
+                false
+            }
+            clearIcon.setOnClickListener {
+                songs.clear()
+                adapter.notifyDataSetChanged()
+                searchEditText.setText("")
+                val inputMethodManager =
+                    getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                inputMethodManager?.hideSoftInputFromWindow(it.windowToken, 0)
+            }
 
-        val arrowBack = findViewById<ImageView>(R.id.arrow_back_from_search)
-        arrowBack.setOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
-        }
+            val textWatcher = object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    clearIcon.isVisible = !s.isNullOrEmpty()
+                    searchText = searchEditText.text.toString()
+                }
+                override fun afterTextChanged(s: Editable?) {}
+            }
 
-        searchEditText.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
+            searchEditText.addTextChangedListener(textWatcher)
+
+            btnRefresh.setOnClickListener {
                 search(searchText)
             }
-            false
         }
-
-        val clearButton = findViewById<ImageView>(R.id.clearIcon)
-        clearButton.setOnClickListener {
-            searchEditText.setText("")
-            val inputMethodManager =
-                getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-            inputMethodManager?.hideSoftInputFromWindow(it.windowToken, 0)
-        }
-
-        val textWatcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                clearButton.visibility = if (s.isNullOrEmpty()) {
-                    View.GONE
-                } else {
-                    View.VISIBLE
-                }
-                searchText = searchEditText.text.toString()
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        }
-        searchEditText.addTextChangedListener(textWatcher)
-
-        btnRefresh.setOnClickListener {
-            search(searchText)
-        }
+        setScreenState(currentState)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        searchEditText.setText(savedInstanceState.getString(EDIT_TEXT_SEARCH, ""))
+        binding.searchEditText.setText(savedInstanceState.getString(EDIT_TEXT_SEARCH, ""))
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -150,20 +131,22 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setScreenState(state: ScreenState) {
-        when(state){
-            is ScreenState.ErrorOrEmptyState -> {
-                imgError.setImageResource(state.imageRes)
-                imgError.visibility = View.VISIBLE
+        with(binding) {
+            when (state) {
+                is ScreenState.ErrorOrEmptyState -> {
+                    imgError.setImageResource(state.imageRes)
+                    imgError.visibility = View.VISIBLE
 
-                textError.text = state.errorText
-                textError.visibility = View.VISIBLE
+                    textViewErrorMessage.text = state.errorText
+                    textViewErrorMessage.visibility = View.VISIBLE
 
-                btnRefresh.visibility = if (state.isButtonRefreshVisible) View.VISIBLE else View.GONE
-            }
-            is ScreenState.StateWithData -> {
-                imgError.visibility = View.GONE
-                textError.visibility = View.GONE
-                btnRefresh.visibility = View.GONE
+                    btnRefresh.isVisible = state.isButtonRefreshVisible
+                }
+                is ScreenState.StateWithData -> {
+                    imgError.visibility = View.GONE
+                    textViewErrorMessage.visibility = View.GONE
+                    btnRefresh.visibility = View.GONE
+                }
             }
         }
     }
