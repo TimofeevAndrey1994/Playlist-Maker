@@ -7,41 +7,53 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.playlistmaker.databinding.ActivitySettingsBinding
 
 class SettingsActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivitySettingsBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val arrowBack = findViewById<ImageView>(R.id.arrow_back)
-        arrowBack.setOnClickListener{
-            onBackPressedDispatcher.onBackPressed()
-        }
-
-        val textViewShare = findViewById<TextView>(R.id.textViewShare)
-        textViewShare.setOnClickListener{
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                putExtra(Intent.EXTRA_TEXT, getString(R.string.link_to_course))
-                type = "text/plain"
+        with(binding) {
+            arrowBack.setOnClickListener {
+                onBackPressedDispatcher.onBackPressed()
             }
-            startActivity(intent)
-        }
 
-        val textViewTextToSupport = findViewById<TextView>(R.id.textViewTextToSupport)
-        textViewTextToSupport.setOnClickListener{
-            val shareIntent = Intent(Intent.ACTION_SENDTO)
-            shareIntent.data = Uri.parse("mailto:")
-            shareIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.developer_email)))
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.messageToDevelopersSubject))
-            shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.messageToDevelopers))
-            startActivity(shareIntent)
-        }
+            textViewShare.setOnClickListener {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    putExtra(Intent.EXTRA_TEXT, getString(R.string.link_to_course))
+                    type = "text/plain"
+                }
+                startActivity(intent)
+            }
 
-        val textViewUserAgreement = findViewById<TextView>(R.id.textViewUserAgreement)
-        textViewUserAgreement.setOnClickListener{
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.link_to_user_agreement)))
-            startActivity(intent)
-        }
+            textViewTextToSupport.setOnClickListener {
+                val shareIntent = Intent(Intent.ACTION_SENDTO)
+                shareIntent.data = Uri.parse("mailto:")
+                shareIntent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    arrayOf(getString(R.string.developer_email))
+                )
+                shareIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    getString(R.string.messageToDevelopersSubject)
+                )
+                shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.messageToDevelopers))
+                startActivity(shareIntent)
+            }
 
+            textViewUserAgreement.setOnClickListener {
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse(getString(R.string.link_to_user_agreement))
+                )
+                startActivity(intent)
+            }
+
+        }
     }
 }
