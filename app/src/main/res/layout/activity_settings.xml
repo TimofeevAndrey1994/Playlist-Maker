@@ -36,7 +36,8 @@
 
     </LinearLayout>
 
-    <androidx.appcompat.widget.SwitchCompat
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/themeSwitcher"
         android:layout_width="match_parent"
         android:layout_height="@dimen/item_height"
         app:trackTint="?attr/trackTint"
