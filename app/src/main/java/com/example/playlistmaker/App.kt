@@ -9,7 +9,6 @@ class App: Application() {
         getSharedPreferences(KEY_APP_IS_DARK_THEME, MODE_PRIVATE)
     }
 
-
      var darkTheme: Boolean
         get() = sharedPrefs.getBoolean(KEY_APP_IS_DARK_THEME, false)
         set(value) {

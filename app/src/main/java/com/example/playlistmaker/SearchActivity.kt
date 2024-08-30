@@ -7,19 +7,15 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.RecyclerView
 import com.example.playlistmaker.databinding.ActivitySearchBinding
-import com.example.playlistmaker.model.Song
 import com.example.playlistmaker.retrofit.ItunesAPI
 import com.example.playlistmaker.retrofit.ItunesResponse
 import com.example.playlistmaker.rv.TrackAdapter
+import com.example.playlistmaker.rv.TrackAdapterSearchHistory
+import com.example.playlistmaker.utils.SEARCH_HISTORY
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -36,31 +32,55 @@ class SearchActivity : AppCompatActivity() {
         .build()
     private val itunesService = retrofit.create(ItunesAPI::class.java)
 
-    private var songs: ArrayList<Song> = ArrayList()
-    private val adapter = TrackAdapter(songs)
+    private val adapter = TrackAdapter()
+    private val adapterSearch by lazy {
+        TrackAdapterSearchHistory(preferences)
+    }
+    private val preferences by lazy {
+        getSharedPreferences(SEARCH_HISTORY, MODE_PRIVATE)
+    }
 
     private var searchText = ""
-    private var currentState: ScreenState = ScreenState.StateWithData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        with (binding){
+        with(binding) {
+            setScreenState(ScreenState.StateWithData)
+
+            adapter.setOnItemClickListener{ song ->
+                adapterSearch.addSongToList(song)
+            }
             recyclerView.adapter = adapter
+            searchHistory.rvSavedList.adapter = adapterSearch
+            searchHistory.btnClearHistory.setOnClickListener {
+                adapterSearch.clearAll()
+                setScreenState(ScreenState.StateWithData)
+            }
+
             arrowBackFromSearch.setOnClickListener {
                 onBackPressedDispatcher.onBackPressed()
             }
+
             searchEditText.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     search(searchText)
                 }
                 false
             }
+            searchEditText.setOnFocusChangeListener { view, hasFocus ->
+                if (hasFocus and searchText.isEmpty() and (adapterSearch.itemCount > 0)) {
+                    setScreenState(ScreenState.SearchHistoryState)
+                }
+                else {
+                    setScreenState(ScreenState.StateWithData)
+                }
+            }
+
             clearIcon.setOnClickListener {
-                songs.clear()
-                adapter.notifyDataSetChanged()
+                adapter.clear(true)
                 searchEditText.setText("")
                 val inputMethodManager =
                     getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
@@ -68,21 +88,36 @@ class SearchActivity : AppCompatActivity() {
             }
 
             val textWatcher = object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     clearIcon.isVisible = !s.isNullOrEmpty()
                     searchText = searchEditText.text.toString()
+                    if (searchEditText.hasFocus() and searchText.isEmpty() and (adapterSearch.itemCount > 0)) {
+                        setScreenState(ScreenState.SearchHistoryState)
+                    }
+                    else {
+                        setScreenState(ScreenState.StateWithData)
+                    }
                 }
+
                 override fun afterTextChanged(s: Editable?) {}
             }
 
             searchEditText.addTextChangedListener(textWatcher)
 
-            btnRefresh.setOnClickListener {
+            searchErrorState.btnRefresh.setOnClickListener {
                 search(searchText)
             }
+
+
         }
-        setScreenState(currentState)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -97,12 +132,13 @@ class SearchActivity : AppCompatActivity() {
 
     companion object {
         private const val EDIT_TEXT_SEARCH = "EDIT_TEXT_SEARCH"
-        private const val BASE_URL         = "https://itunes.apple.com"
+        private const val BASE_URL = "https://itunes.apple.com"
     }
 
     private fun search(text: String) {
         if (text.isEmpty()) return
-        songs.clear()
+        adapter.clear()
+        setScreenState(ScreenState.StateWithData)
         itunesService.getSongs(text)
             .enqueue(object : Callback<ItunesResponse> {
                 override fun onResponse(
@@ -112,8 +148,7 @@ class SearchActivity : AppCompatActivity() {
                     if (response.code() == 200) {
                         val currentData = response.body()?.results!!
                         if (currentData.isNotEmpty()) {
-                            songs.addAll(currentData)
-                            adapter.notifyDataSetChanged()
+                            adapter.addAll(currentData)
                             setScreenState(ScreenState.StateWithData)
                         } else {
                             setScreenState(ScreenState.ErrorOrEmptyState.NoData(getString(R.string.no_data)))
@@ -134,18 +169,30 @@ class SearchActivity : AppCompatActivity() {
         with(binding) {
             when (state) {
                 is ScreenState.ErrorOrEmptyState -> {
-                    imgError.setImageResource(state.imageRes)
-                    imgError.visibility = View.VISIBLE
+                    recyclerView.visibility          = View.GONE
 
-                    textViewErrorMessage.text = state.errorText
-                    textViewErrorMessage.visibility = View.VISIBLE
+                    searchHistory.root.visibility    = View.GONE
+                    searchErrorState.root.visibility = View.VISIBLE
 
-                    btnRefresh.isVisible = state.isButtonRefreshVisible
+                    searchErrorState.imgError.setImageResource(state.imageRes)
+                    searchErrorState.imgError.visibility = View.VISIBLE
+
+                    searchErrorState.textViewErrorMessage.text       = state.errorText
+                    searchErrorState.textViewErrorMessage.visibility = View.VISIBLE
+
+                    searchErrorState.btnRefresh.isVisible = state.isButtonRefreshVisible
                 }
+
                 is ScreenState.StateWithData -> {
-                    imgError.visibility = View.GONE
-                    textViewErrorMessage.visibility = View.GONE
-                    btnRefresh.visibility = View.GONE
+                    recyclerView.visibility          = View.VISIBLE
+                    searchHistory.root.visibility    = View.GONE
+                    searchErrorState.root.visibility = View.GONE
+                }
+
+                ScreenState.SearchHistoryState -> {
+                    recyclerView.visibility          = View.GONE
+                    searchHistory.root.visibility    = View.VISIBLE
+                    searchErrorState.root.visibility = View.GONE
                 }
             }
         }
@@ -153,10 +200,17 @@ class SearchActivity : AppCompatActivity() {
 
     sealed class ScreenState {
         data object StateWithData : ScreenState()
-        sealed class ErrorOrEmptyState(@DrawableRes val imageRes: Int, val errorText: String, val isButtonRefreshVisible: Boolean
-        ): ScreenState() {
-            class ConnectionError(errorText: String): ErrorOrEmptyState(R.drawable.connection_error, errorText, true)
-            class NoData(errorText: String): ErrorOrEmptyState(R.drawable.nothing_to_show, errorText, false)
+        data object SearchHistoryState : ScreenState()
+        sealed class ErrorOrEmptyState(
+            @DrawableRes val imageRes: Int,
+            val errorText: String,
+            val isButtonRefreshVisible: Boolean
+        ) : ScreenState() {
+            class ConnectionError(errorText: String) :
+                ErrorOrEmptyState(R.drawable.connection_error, errorText, true)
+
+            class NoData(errorText: String) :
+                ErrorOrEmptyState(R.drawable.nothing_to_show, errorText, false)
         }
     }
 }

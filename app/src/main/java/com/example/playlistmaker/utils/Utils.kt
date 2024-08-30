@@ -1,5 +1,7 @@
 package com.example.playlistmaker.utils
 
+const val SEARCH_HISTORY = "SEARCH_HISTORY"
+
 /**
  * @return -1 - если значение не было преобразовано, во всех остальных случаях возвращает значение в формате Long.
  */

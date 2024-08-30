@@ -10,7 +10,7 @@ import com.example.playlistmaker.utils.tryToLong
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class TrackViewHolder(private val binding: TrackItemBinding): RecyclerView.ViewHolder(binding.root) {
+class TrackViewHolder(val binding: TrackItemBinding): RecyclerView.ViewHolder(binding.root) {
 
     fun bind(model: Song) {
         with(binding) {
