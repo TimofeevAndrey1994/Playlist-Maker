@@ -47,6 +47,7 @@
 
                 <TextView
                     android:id="@+id/trackPerformer"
+                    android:maxWidth="200dp"
                     style="@style/secondary_text_style"
                     tools:text="The Beatles" />
 
