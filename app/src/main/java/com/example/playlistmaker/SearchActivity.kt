@@ -1,6 +1,7 @@
 package com.example.playlistmaker
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,11 +12,13 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.example.playlistmaker.databinding.ActivitySearchBinding
+import com.example.playlistmaker.model.Song
 import com.example.playlistmaker.retrofit.ItunesAPI
 import com.example.playlistmaker.retrofit.ItunesResponse
 import com.example.playlistmaker.rv.TrackAdapter
 import com.example.playlistmaker.rv.TrackAdapterSearchHistory
 import com.example.playlistmaker.utils.SEARCH_HISTORY
+import com.example.playlistmaker.utils.SONG_MODEL
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -51,9 +54,15 @@ class SearchActivity : AppCompatActivity() {
             setScreenState(ScreenState.StateWithData)
 
             adapter.setOnItemClickListener{ song ->
+                openPlayer(song)
+                //--- add to search history
                 adapterSearch.addSongToList(song)
             }
             recyclerView.adapter = adapter
+
+            adapterSearch.setOnItemClickListener{ song ->
+                openPlayer(song)
+            }
             searchHistory.rvSavedList.adapter = adapterSearch
             searchHistory.btnClearHistory.setOnClickListener {
                 adapterSearch.clearAll()
@@ -133,6 +142,12 @@ class SearchActivity : AppCompatActivity() {
     companion object {
         private const val EDIT_TEXT_SEARCH = "EDIT_TEXT_SEARCH"
         private const val BASE_URL = "https://itunes.apple.com"
+    }
+
+    private fun openPlayer(song: Song){
+        val intent = Intent(this@SearchActivity, MediaPlayerActivity::class.java)
+        intent.putExtra(SONG_MODEL, song)
+        startActivity(intent)
     }
 
     private fun search(text: String) {
