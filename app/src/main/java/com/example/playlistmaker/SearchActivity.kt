@@ -35,8 +35,8 @@ class SearchActivity : AppCompatActivity() {
         .build()
     private val itunesService = retrofit.create(ItunesAPI::class.java)
 
-    private val adapter = TrackAdapter()
-    private val adapterSearch by lazy {
+    private val adapterTrack = TrackAdapter()
+    private val adapterTrackSearch by lazy {
         TrackAdapterSearchHistory(preferences)
     }
     private val preferences by lazy {
@@ -53,19 +53,17 @@ class SearchActivity : AppCompatActivity() {
         with(binding) {
             setScreenState(ScreenState.StateWithData)
 
-            adapter.setOnItemClickListener{ song ->
+            adapterTrack.setOnItemClickListener{ song ->
                 openPlayer(song)
-                //--- add to search history
-                adapterSearch.addSongToList(song)
             }
-            recyclerView.adapter = adapter
+            recyclerView.adapter = adapterTrack
 
-            adapterSearch.setOnItemClickListener{ song ->
+            adapterTrackSearch.setOnItemClickListener{ song ->
                 openPlayer(song)
             }
-            searchHistory.rvSavedList.adapter = adapterSearch
+            searchHistory.rvSavedList.adapter = adapterTrackSearch
             searchHistory.btnClearHistory.setOnClickListener {
-                adapterSearch.clearAll()
+                adapterTrackSearch.clearAll()
                 setScreenState(ScreenState.StateWithData)
             }
 
@@ -80,7 +78,7 @@ class SearchActivity : AppCompatActivity() {
                 false
             }
             searchEditText.setOnFocusChangeListener { view, hasFocus ->
-                if (hasFocus and searchText.isEmpty() and (adapterSearch.itemCount > 0)) {
+                if (hasFocus and searchText.isEmpty() and (adapterTrackSearch.itemCount > 0)) {
                     setScreenState(ScreenState.SearchHistoryState)
                 }
                 else {
@@ -89,7 +87,7 @@ class SearchActivity : AppCompatActivity() {
             }
 
             clearIcon.setOnClickListener {
-                adapter.clear(true)
+                adapterTrack.clear(true)
                 searchEditText.setText("")
                 val inputMethodManager =
                     getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
@@ -108,7 +106,7 @@ class SearchActivity : AppCompatActivity() {
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     clearIcon.isVisible = !s.isNullOrEmpty()
                     searchText = searchEditText.text.toString()
-                    if (searchEditText.hasFocus() and searchText.isEmpty() and (adapterSearch.itemCount > 0)) {
+                    if (searchEditText.hasFocus() and searchText.isEmpty() and (adapterTrackSearch.itemCount > 0)) {
                         setScreenState(ScreenState.SearchHistoryState)
                     }
                     else {
@@ -145,6 +143,8 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun openPlayer(song: Song){
+        adapterTrackSearch.addSongToList(song)
+
         val intent = Intent(this@SearchActivity, MediaPlayerActivity::class.java)
         intent.putExtra(SONG_MODEL, song)
         startActivity(intent)
@@ -152,7 +152,7 @@ class SearchActivity : AppCompatActivity() {
 
     private fun search(text: String) {
         if (text.isEmpty()) return
-        adapter.clear()
+        adapterTrack.clear()
         setScreenState(ScreenState.StateWithData)
         itunesService.getSongs(text)
             .enqueue(object : Callback<ItunesResponse> {
@@ -163,7 +163,7 @@ class SearchActivity : AppCompatActivity() {
                     if (response.code() == 200) {
                         val currentData = response.body()?.results!!
                         if (currentData.isNotEmpty()) {
-                            adapter.addAll(currentData)
+                            adapterTrack.addAll(currentData)
                             setScreenState(ScreenState.StateWithData)
                         } else {
                             setScreenState(ScreenState.ErrorOrEmptyState.NoData(getString(R.string.no_data)))

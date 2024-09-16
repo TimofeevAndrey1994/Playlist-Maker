@@ -4,6 +4,7 @@ import android.os.Build
 import android.os.Build.VERSION
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.IntentCompat
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -26,7 +27,7 @@ class MediaPlayerActivity : AppCompatActivity() {
         val song = if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(SONG_MODEL, Song::class.java)
         } else {
-            intent.getParcelableExtra(SONG_MODEL)
+            IntentCompat.getParcelableExtra(intent, SONG_MODEL, Song::class.java)
         }
 
         with(binding){
