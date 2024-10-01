@@ -1,6 +1,7 @@
 package com.example.playlistmaker
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,11 +12,13 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.example.playlistmaker.databinding.ActivitySearchBinding
+import com.example.playlistmaker.model.Song
 import com.example.playlistmaker.retrofit.ItunesAPI
 import com.example.playlistmaker.retrofit.ItunesResponse
 import com.example.playlistmaker.rv.TrackAdapter
 import com.example.playlistmaker.rv.TrackAdapterSearchHistory
 import com.example.playlistmaker.utils.SEARCH_HISTORY
+import com.example.playlistmaker.utils.SONG_MODEL
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -32,8 +35,8 @@ class SearchActivity : AppCompatActivity() {
         .build()
     private val itunesService = retrofit.create(ItunesAPI::class.java)
 
-    private val adapter = TrackAdapter()
-    private val adapterSearch by lazy {
+    private val adapterTrack = TrackAdapter()
+    private val adapterTrackSearch by lazy {
         TrackAdapterSearchHistory(preferences)
     }
     private val preferences by lazy {
@@ -50,13 +53,17 @@ class SearchActivity : AppCompatActivity() {
         with(binding) {
             setScreenState(ScreenState.StateWithData)
 
-            adapter.setOnItemClickListener{ song ->
-                adapterSearch.addSongToList(song)
+            adapterTrack.setOnItemClickListener{ song ->
+                openPlayer(song)
             }
-            recyclerView.adapter = adapter
-            searchHistory.rvSavedList.adapter = adapterSearch
+            recyclerView.adapter = adapterTrack
+
+            adapterTrackSearch.setOnItemClickListener{ song ->
+                openPlayer(song)
+            }
+            searchHistory.rvSavedList.adapter = adapterTrackSearch
             searchHistory.btnClearHistory.setOnClickListener {
-                adapterSearch.clearAll()
+                adapterTrackSearch.clearAll()
                 setScreenState(ScreenState.StateWithData)
             }
 
@@ -71,7 +78,7 @@ class SearchActivity : AppCompatActivity() {
                 false
             }
             searchEditText.setOnFocusChangeListener { view, hasFocus ->
-                if (hasFocus and searchText.isEmpty() and (adapterSearch.itemCount > 0)) {
+                if (hasFocus and searchText.isEmpty() and (adapterTrackSearch.itemCount > 0)) {
                     setScreenState(ScreenState.SearchHistoryState)
                 }
                 else {
@@ -80,7 +87,7 @@ class SearchActivity : AppCompatActivity() {
             }
 
             clearIcon.setOnClickListener {
-                adapter.clear(true)
+                adapterTrack.clear(true)
                 searchEditText.setText("")
                 val inputMethodManager =
                     getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
@@ -99,7 +106,7 @@ class SearchActivity : AppCompatActivity() {
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     clearIcon.isVisible = !s.isNullOrEmpty()
                     searchText = searchEditText.text.toString()
-                    if (searchEditText.hasFocus() and searchText.isEmpty() and (adapterSearch.itemCount > 0)) {
+                    if (searchEditText.hasFocus() and searchText.isEmpty() and (adapterTrackSearch.itemCount > 0)) {
                         setScreenState(ScreenState.SearchHistoryState)
                     }
                     else {
@@ -135,9 +142,17 @@ class SearchActivity : AppCompatActivity() {
         private const val BASE_URL = "https://itunes.apple.com"
     }
 
+    private fun openPlayer(song: Song){
+        adapterTrackSearch.addSongToList(song)
+
+        val intent = Intent(this@SearchActivity, MediaPlayerActivity::class.java)
+        intent.putExtra(SONG_MODEL, song)
+        startActivity(intent)
+    }
+
     private fun search(text: String) {
         if (text.isEmpty()) return
-        adapter.clear()
+        adapterTrack.clear()
         setScreenState(ScreenState.StateWithData)
         itunesService.getSongs(text)
             .enqueue(object : Callback<ItunesResponse> {
@@ -148,7 +163,7 @@ class SearchActivity : AppCompatActivity() {
                     if (response.code() == 200) {
                         val currentData = response.body()?.results!!
                         if (currentData.isNotEmpty()) {
-                            adapter.addAll(currentData)
+                            adapterTrack.addAll(currentData)
                             setScreenState(ScreenState.StateWithData)
                         } else {
                             setScreenState(ScreenState.ErrorOrEmptyState.NoData(getString(R.string.no_data)))
