@@ -12,9 +12,10 @@ data class Song(
     val trackName:  String,
     val artistName: String,
     @SerializedName("trackTimeMillis") val trackTime:  String,
+    val previewUrl: String? = "",
     val artworkUrl100: String? = "",
     val country: String,
     val releaseDate: Date,
     val collectionName: String = "",
-    val primaryGenreName: String
+    val primaryGenreName: String,
 ): Parcelable
