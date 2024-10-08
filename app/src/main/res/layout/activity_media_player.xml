@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/Theme.PlaylistMaker"
+    android:background="?attr/background"
     tools:context=".MediaPlayerActivity">
 
     <ImageView
@@ -140,7 +141,8 @@
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toTopOf="@id/tvYearValue"
         app:layout_constraintEnd_toStartOf="@id/guidelineEnd"
-        tools:text="Yesterday (Remastered 2009)" />
+        android:maxWidth="250dp"
+        tools:text="Yesterday (Remastered 2009) ds;oso;dk ;ldskf;ldkf d;lfkdl;fk dl;fkd;lsfk ;lsdkfl; sl;dfk" />
 
     <TextView
         android:id="@+id/tvDuration"

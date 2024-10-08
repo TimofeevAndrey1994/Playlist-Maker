@@ -3,9 +3,6 @@ package com.example.playlistmaker
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.playlistmaker.databinding.ActivitySettingsBinding
 
@@ -55,8 +52,8 @@ class SettingsActivity : AppCompatActivity() {
             }
 
             themeSwitcher.isChecked = (applicationContext as App).darkTheme
-            themeSwitcher.setOnCheckedChangeListener { buttonView, isChecked ->
-                (applicationContext as App).switchTheme(isChecked)
+            themeSwitcher.setOnCheckedChangeListener { _, isChecked ->
+                (applicationContext as App).switchTheme(isChecked, true)
             }
 
         }

@@ -17,6 +17,7 @@ import com.example.playlistmaker.databinding.ActivitySearchBinding
 import com.example.playlistmaker.model.Song
 import com.example.playlistmaker.retrofit.ItunesAPI
 import com.example.playlistmaker.retrofit.ItunesResponse
+import com.example.playlistmaker.retrofit.RetrofitInstance
 import com.example.playlistmaker.rv.TrackAdapter
 import com.example.playlistmaker.rv.TrackAdapterSearchHistory
 import com.example.playlistmaker.utils.SEARCH_HISTORY
@@ -37,12 +38,6 @@ class SearchActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySearchBinding
 
-    private val retrofit = Retrofit.Builder()
-        .baseUrl(BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-    private val itunesService = retrofit.create(ItunesAPI::class.java)
-
     private val adapterTrack = TrackAdapter()
     private val adapterTrackSearch by lazy {
         TrackAdapterSearchHistory(preferences)
@@ -62,14 +57,14 @@ class SearchActivity : AppCompatActivity() {
             setScreenState(ScreenState.StateWithData)
 
             adapterTrack.setOnItemClickListener{ song ->
-                if(itemClickWithDebaunce()) {
+                if(itemClickWithDebounce()) {
                     openPlayer(song)
                 }
             }
             recyclerView.adapter = adapterTrack
 
             adapterTrackSearch.setOnItemClickListener{ song ->
-                if(itemClickWithDebaunce()) {
+                if(itemClickWithDebounce()) {
                     openPlayer(song)
                 }
             }
@@ -83,7 +78,7 @@ class SearchActivity : AppCompatActivity() {
                 onBackPressedDispatcher.onBackPressed()
             }
 
-            searchEditText.setOnFocusChangeListener { view, hasFocus ->
+            searchEditText.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus and searchText.isEmpty() and (adapterTrackSearch.itemCount > 0)) {
                     setScreenState(ScreenState.SearchHistoryState)
                 }
@@ -116,7 +111,7 @@ class SearchActivity : AppCompatActivity() {
                         setScreenState(ScreenState.SearchHistoryState)
                     }
                     else {
-                        searchWithDebaunce()
+                        searchWithDebounce()
                         setScreenState(ScreenState.StateWithData)
                     }
                 }
@@ -127,12 +122,12 @@ class SearchActivity : AppCompatActivity() {
             searchEditText.addTextChangedListener(textWatcher)
 
             searchErrorState.btnRefresh.setOnClickListener {
-                searchWithDebaunce()
+                searchWithDebounce()
             }
         }
     }
 
-    private fun searchWithDebaunce(){
+    private fun searchWithDebounce(){
         mainThreadHandler.removeCallbacks(searchRunnable)
         mainThreadHandler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
     }
@@ -149,7 +144,6 @@ class SearchActivity : AppCompatActivity() {
 
     companion object {
         private const val EDIT_TEXT_SEARCH = "EDIT_TEXT_SEARCH"
-        private const val BASE_URL = "https://itunes.apple.com"
         private const val SEARCH_DEBOUNCE_DELAY = 2000L
         private const val CLICK_DEBOUNCE_DELAY = 1000L
     }
@@ -166,7 +160,7 @@ class SearchActivity : AppCompatActivity() {
         if (searchText.isEmpty()) return
         adapterTrack.clear()
         setScreenState(ScreenState.StateWithProgressBar)
-        itunesService.getSongs(searchText)
+        RetrofitInstance.itunesService.getSongs(searchText)
             .enqueue(object : Callback<ItunesResponse> {
                 override fun onResponse(
                     call: Call<ItunesResponse>,
@@ -192,7 +186,7 @@ class SearchActivity : AppCompatActivity() {
             })
     }
 
-    private fun itemClickWithDebaunce(): Boolean{
+    private fun itemClickWithDebounce(): Boolean{
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false

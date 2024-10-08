@@ -46,5 +46,6 @@
 
     <style name="media_player_info_track_text_style_values" parent="media_player_info_track_text_style">
         <item name="android:textColor">?attr/colorOnSecondary</item>
+        <item name="android:maxWidth">300dp</item>
     </style>
 </resources>

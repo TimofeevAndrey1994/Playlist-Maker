@@ -1,17 +1,23 @@
 package com.example.playlistmaker
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Build.VERSION
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.example.playlistmaker.databinding.ActivityMediaPlayerBinding
 import com.example.playlistmaker.model.Song
 import com.example.playlistmaker.utils.SONG_MODEL
@@ -35,8 +41,8 @@ class MediaPlayerActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper())
     }
 
-    @SuppressLint("DefaultLocale")
     private val updateTimeRunnable: Runnable = object : Runnable {
+        @SuppressLint("DefaultLocale")
         override fun run() {
             val seconds = mediaPlayer.currentPosition / 1000L
             binding.tvSongDuration.text = String.format("%02d:%02d", seconds / 60, seconds % 60)
@@ -66,7 +72,7 @@ class MediaPlayerActivity : AppCompatActivity() {
             Glide.with(root)
                 .load(song?.artworkUrl100?.replaceAfterLast("/", "512x512bb.jpg"))
                 .placeholder(R.drawable.ic_placeholder)
-                .transform(RoundedCorners(8))
+                .transform(CenterCrop(), RoundedCorners(8))
                 .into(trackCover)
 
             val trackDuration = song?.trackTime?.tryToLong()
