@@ -2,6 +2,7 @@ package com.example.playlistmaker.rv
 
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.TrackItemBinding
@@ -17,7 +18,7 @@ class TrackViewHolder(val binding: TrackItemBinding): RecyclerView.ViewHolder(bi
             Glide.with(root)
                 .load(model.artworkUrl100)
                 .placeholder(R.drawable.ic_placeholder)
-                .transform(RoundedCorners(2))
+                .transform(CenterCrop(), RoundedCorners(2))
                 .into(trackCover)
 
             trackName.text = model.trackName

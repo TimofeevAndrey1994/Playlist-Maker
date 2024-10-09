@@ -54,7 +54,6 @@
             android:drawableTint="?attr/colorPrimary"
             android:fontFamily="@font/ys_display_regular"
             android:hint="@string/search_title"
-            android:imeOptions="actionDone"
             android:inputType="text"
             android:maxLength="30"
             android:maxLines="1"
@@ -104,5 +103,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"/>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="144dp"
+        android:layout_gravity="center_horizontal"
+        android:indeterminateTint="@color/yp_blue" />
 
 </LinearLayout>

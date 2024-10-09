@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/Theme.PlaylistMaker"
+    android:background="?attr/background"
     tools:context=".MediaPlayerActivity">
 
     <ImageView
@@ -140,7 +141,8 @@
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toTopOf="@id/tvYearValue"
         app:layout_constraintEnd_toStartOf="@id/guidelineEnd"
-        tools:text="Yesterday (Remastered 2009)" />
+        android:maxWidth="250dp"
+        tools:text="Yesterday (Remastered 2009) ds;oso;dk ;ldskf;ldkf d;lfkdl;fk dl;fkd;lsfk ;lsdkfl; sl;dfk" />
 
     <TextView
         android:id="@+id/tvDuration"
@@ -163,6 +165,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="60dp"
+        android:clickable="true"
         app:layout_constraintBottom_toTopOf="@id/tvDuration"
         app:layout_constraintEnd_toStartOf="@id/guidelineEnd"
         app:layout_constraintStart_toEndOf="@id/guidelineStart"
@@ -195,12 +198,11 @@
         android:id="@+id/tvSongDuration"
         style="@style/media_player_info_track_text_style_values"
         android:layout_marginTop="12dp"
-        android:text="0:00"
+        android:text="@string/init_song_time"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="@+id/ivPlay"
         app:layout_constraintStart_toStartOf="@+id/ivPlay"
-        app:layout_constraintTop_toBottomOf="@id/ivPlay"
-        tools:text="0:29" />
+        app:layout_constraintTop_toBottomOf="@id/ivPlay" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group_album"
