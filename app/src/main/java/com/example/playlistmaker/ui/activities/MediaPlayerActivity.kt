@@ -1,27 +1,23 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.ui.activities
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Build.VERSION
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestOptions
+import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.ActivityMediaPlayerBinding
-import com.example.playlistmaker.model.Song
-import com.example.playlistmaker.utils.SONG_MODEL
+import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.tryToLong
+import com.example.playlistmaker.ui.activities.SearchActivity.Companion.TRACK_MODEL
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -60,37 +56,31 @@ class MediaPlayerActivity : AppCompatActivity() {
         //--- поэтому приводим состояние экрана в состояние DEFAUTL
         mediaPlayerState = MediaPlayerState.STATE_DEFAULT
 
-        val song = if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra(SONG_MODEL, Song::class.java)
+        val track = if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(TRACK_MODEL, Track::class.java)
         } else {
-            IntentCompat.getParcelableExtra(intent, SONG_MODEL, Song::class.java)
+            IntentCompat.getParcelableExtra(intent, TRACK_MODEL, Track::class.java)
         }
 
         with(binding) {
-            trackName.text = song?.trackName
-            trackPerformer.text = song?.artistName
+            trackName.text = track?.trackName
+            trackPerformer.text = track?.artistName
             Glide.with(root)
-                .load(song?.artworkUrl100?.replaceAfterLast("/", "512x512bb.jpg"))
+                .load(track?.artworkUrl100?.replaceAfterLast("/", "512x512bb.jpg"))
                 .placeholder(R.drawable.ic_placeholder)
                 .transform(CenterCrop(), RoundedCorners(8))
                 .into(trackCover)
 
-            val trackDuration = song?.trackTime?.tryToLong()
-            if (trackDuration != null) {
-                if (trackDuration > -1) {
-                    tvDurationValue.text =
-                        SimpleDateFormat("mm:ss", Locale.getDefault()).format(trackDuration)
-                }
-            }
+            tvDurationValue.text = track?.trackTime
 
-            val album = song?.collectionName ?: ""
+            val album = track?.collectionName ?: ""
             groupAlbum.isVisible = album.isNotEmpty()
-            tvAlbumValue.text = song?.collectionName
-            val releaseDate = song?.releaseDate
+            tvAlbumValue.text = track?.collectionName
+            val releaseDate = track?.releaseDate
             if (releaseDate != null)
                 tvYearValue.text = SimpleDateFormat("yyyy", Locale.getDefault()).format(releaseDate)
-            tvGenreValue.text = song?.primaryGenreName
-            tvCountryValue.text = song?.country
+            tvGenreValue.text = track?.primaryGenreName
+            tvCountryValue.text = track?.country
 
             arrowBackFromMediaPlayer.setOnClickListener {
                 onBackPressedDispatcher.onBackPressed()
@@ -103,8 +93,8 @@ class MediaPlayerActivity : AppCompatActivity() {
             }
         }
 
-        if (song?.previewUrl != null) {
-            initMediaPlayer(song.previewUrl)
+        if (track?.previewUrl != null) {
+            initMediaPlayer(track.previewUrl)
         }
     }
 
@@ -166,10 +156,10 @@ class MediaPlayerActivity : AppCompatActivity() {
         STATE_PAUSED;
 
         fun getNextState(): MediaPlayerState = when (this) {
-            STATE_DEFAULT -> MediaPlayerState.STATE_PREPARED
-            STATE_PREPARED -> MediaPlayerState.STATE_PLAYING
-            STATE_PLAYING -> MediaPlayerState.STATE_PAUSED
-            STATE_PAUSED -> MediaPlayerState.STATE_PLAYING
+            STATE_DEFAULT -> STATE_PREPARED
+            STATE_PREPARED -> STATE_PLAYING
+            STATE_PLAYING -> STATE_PAUSED
+            STATE_PAUSED -> STATE_PLAYING
         }
     }
 }

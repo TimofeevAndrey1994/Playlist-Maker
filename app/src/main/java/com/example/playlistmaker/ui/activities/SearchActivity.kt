@@ -1,4 +1,4 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.ui.activities
 
 import android.content.Context
 import android.content.Intent
@@ -8,28 +8,23 @@ import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import com.example.playlistmaker.Creator
+import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.ActivitySearchBinding
-import com.example.playlistmaker.model.Song
-import com.example.playlistmaker.retrofit.ItunesAPI
-import com.example.playlistmaker.retrofit.ItunesResponse
-import com.example.playlistmaker.retrofit.RetrofitInstance
-import com.example.playlistmaker.rv.TrackAdapter
-import com.example.playlistmaker.rv.TrackAdapterSearchHistory
-import com.example.playlistmaker.utils.SEARCH_HISTORY
-import com.example.playlistmaker.utils.SONG_MODEL
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.example.playlistmaker.domain.model.Track
+import com.example.playlistmaker.domain.api.TracksInteractor
+import com.example.playlistmaker.ui.recycler_view.TrackAdapter
+import com.example.playlistmaker.ui.recycler_view.TrackAdapterSearchHistory
 
 class SearchActivity : AppCompatActivity() {
 
+    private val tracksInteractor by lazy {
+        Creator.provideTracksInteractor(this)
+    }
     private var isClickAllowed = true
 
     private val searchRunnable = Runnable { search() }
@@ -40,10 +35,7 @@ class SearchActivity : AppCompatActivity() {
 
     private val adapterTrack = TrackAdapter()
     private val adapterTrackSearch by lazy {
-        TrackAdapterSearchHistory(preferences)
-    }
-    private val preferences by lazy {
-        getSharedPreferences(SEARCH_HISTORY, MODE_PRIVATE)
+        TrackAdapterSearchHistory(tracksInteractor)
     }
 
     private var searchText = ""
@@ -56,15 +48,15 @@ class SearchActivity : AppCompatActivity() {
         with(binding) {
             setScreenState(ScreenState.StateWithData)
 
-            adapterTrack.setOnItemClickListener{ song ->
-                if(itemClickWithDebounce()) {
+            adapterTrack.setOnItemClickListener { song ->
+                if (itemClickWithDebounce()) {
                     openPlayer(song)
                 }
             }
             recyclerView.adapter = adapterTrack
 
-            adapterTrackSearch.setOnItemClickListener{ song ->
-                if(itemClickWithDebounce()) {
+            adapterTrackSearch.setOnItemClickListener { song ->
+                if (itemClickWithDebounce()) {
                     openPlayer(song)
                 }
             }
@@ -81,8 +73,7 @@ class SearchActivity : AppCompatActivity() {
             searchEditText.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus and searchText.isEmpty() and (adapterTrackSearch.itemCount > 0)) {
                     setScreenState(ScreenState.SearchHistoryState)
-                }
-                else {
+                } else {
                     setScreenState(ScreenState.StateWithData)
                 }
             }
@@ -109,8 +100,7 @@ class SearchActivity : AppCompatActivity() {
                     searchText = searchEditText.text.toString()
                     if (searchEditText.hasFocus() and searchText.isEmpty() and (adapterTrackSearch.itemCount > 0)) {
                         setScreenState(ScreenState.SearchHistoryState)
-                    }
-                    else {
+                    } else {
                         searchWithDebounce()
                         setScreenState(ScreenState.StateWithData)
                     }
@@ -127,7 +117,7 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
-    private fun searchWithDebounce(){
+    private fun searchWithDebounce() {
         mainThreadHandler.removeCallbacks(searchRunnable)
         mainThreadHandler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
     }
@@ -146,58 +136,47 @@ class SearchActivity : AppCompatActivity() {
         private const val EDIT_TEXT_SEARCH = "EDIT_TEXT_SEARCH"
         private const val SEARCH_DEBOUNCE_DELAY = 2000L
         private const val CLICK_DEBOUNCE_DELAY = 1000L
+        const val TRACK_MODEL = "TRACK"
     }
 
-    private fun openPlayer(song: Song){
-        adapterTrackSearch.addSongToList(song)
+    private fun openPlayer(track: Track) {
+        adapterTrackSearch.addSongToList(track)
 
         val intent = Intent(this@SearchActivity, MediaPlayerActivity::class.java)
-        intent.putExtra(SONG_MODEL, song)
+        intent.putExtra(TRACK_MODEL, track)
         startActivity(intent)
     }
 
     private fun search() {
         if (searchText.isEmpty()) return
-        adapterTrack.clear()
         setScreenState(ScreenState.StateWithProgressBar)
-        RetrofitInstance.itunesService.getSongs(searchText)
-            .enqueue(object : Callback<ItunesResponse> {
-                override fun onResponse(
-                    call: Call<ItunesResponse>,
-                    response: Response<ItunesResponse>
-                ) {
-                    if (response.code() == 200) {
-                        val currentData = response.body()?.results!!
-                        if (currentData.isNotEmpty()) {
-                            adapterTrack.addAll(currentData)
-                            setScreenState(ScreenState.StateWithData)
-                        } else {
-                            setScreenState(ScreenState.ErrorOrEmptyState.NoData(getString(R.string.no_data)))
-                        }
-                    } else {
-                        setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(getString(R.string.error_connection)))
-                    }
+        tracksInteractor.searchTracks(searchText, object : TracksInteractor.TracksConsumer {
+            override fun consume(tracks: List<Track>) {
+                mainThreadHandler.post {
+                    adapterTrack.clear()
+                    adapterTrack.addAll(tracks)
+                    setScreenState(
+                        if (tracks.isNotEmpty()) ScreenState.StateWithData else ScreenState.ErrorOrEmptyState.NoData(
+                            getString(R.string.no_data)
+                        )
+                    )
                 }
-
-                override fun onFailure(call: Call<ItunesResponse>, t: Throwable) {
-                    setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(getString(R.string.error_connection)))
-                }
-
-            })
+            }
+        })
     }
 
-    private fun itemClickWithDebounce(): Boolean{
+    private fun itemClickWithDebounce(): Boolean {
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false
-            mainThreadHandler.postDelayed({isClickAllowed = true}, CLICK_DEBOUNCE_DELAY)
+            mainThreadHandler.postDelayed({ isClickAllowed = true }, CLICK_DEBOUNCE_DELAY)
         }
         return current
     }
 
     private fun setScreenState(state: ScreenState) {
 
-        fun setViewsVisible(visibilityFlag: Boolean, vararg views: View){
+        fun setViewsVisible(visibilityFlag: Boolean, vararg views: View) {
             views.forEach { it.isVisible = visibilityFlag }
         }
 
@@ -205,9 +184,14 @@ class SearchActivity : AppCompatActivity() {
             when (state) {
                 is ScreenState.ErrorOrEmptyState -> {
                     setViewsVisible(false, recyclerView, searchHistory.root, progressBar)
-                    setViewsVisible(true, searchErrorState.root, searchErrorState.imgError, searchErrorState.textViewErrorMessage)
+                    setViewsVisible(
+                        true,
+                        searchErrorState.root,
+                        searchErrorState.imgError,
+                        searchErrorState.textViewErrorMessage
+                    )
                     searchErrorState.imgError.setImageResource(state.imageRes)
-                    searchErrorState.textViewErrorMessage.text       = state.errorText
+                    searchErrorState.textViewErrorMessage.text = state.errorText
                     searchErrorState.btnRefresh.isVisible = state.isButtonRefreshVisible
                 }
 
