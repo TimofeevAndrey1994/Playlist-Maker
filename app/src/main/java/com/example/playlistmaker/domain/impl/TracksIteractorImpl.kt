@@ -12,8 +12,12 @@ class TracksInteractorImpl(private val repository: TracksRepository): TracksInte
         }
     }
 
-    override fun saveTracksToLocalStorage(tracks: ArrayList<Track>) {
-        repository.saveTracksToLocalStorage(tracks)
+    override fun saveTrackToLocalStorage(track: Track): ArrayList<Track> {
+        return repository.saveTrackToLocalStorage(track)
+    }
+
+    override fun clearLocalStorage() {
+        repository.clearLocalStorage()
     }
 
 

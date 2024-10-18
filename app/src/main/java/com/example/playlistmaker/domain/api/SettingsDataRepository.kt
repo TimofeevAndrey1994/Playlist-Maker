@@ -1,6 +1,6 @@
 package com.example.playlistmaker.domain.api
 
-interface SettingsDataStoreUseCaseApi {
+interface SettingsDataRepository {
     fun switchTheme(value: Boolean?)
-    fun getCurrentDarkThemeValue(): Boolean
+    fun getCurrentIsDarkTheme(): Boolean
 }

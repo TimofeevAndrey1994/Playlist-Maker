@@ -4,15 +4,15 @@ import android.app.Application.MODE_PRIVATE
 import android.content.Context
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate
-import com.example.playlistmaker.domain.api.SettingsDataStore
+import com.example.playlistmaker.domain.api.SettingsDataRepository
 
-class SettingsDataStoreImpl(private val context: Context): SettingsDataStore {
+class SettingsDataRepositoryImpl(private val context: Context): SettingsDataRepository {
 
     private val sharedPrefs by lazy {
         context.getSharedPreferences(KEY_APP_IS_DARK_THEME, MODE_PRIVATE)
     }
 
-    override fun switchTheme(value: Boolean?, rememberState: Boolean){
+    override fun switchTheme(value: Boolean?){
         val currentValue = value ?: isDarkTheme()
         AppCompatDelegate.setDefaultNightMode(
             if (currentValue) {
