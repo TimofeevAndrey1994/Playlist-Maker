@@ -1,14 +1,14 @@
-package com.example.playlistmaker.rv
+package com.example.playlistmaker.ui.recycler_view
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.playlistmaker.databinding.TrackItemBinding
-import com.example.playlistmaker.model.Song
+import com.example.playlistmaker.domain.model.Track
 
 open class TrackAdapter: RecyclerView.Adapter<TrackViewHolder> () {
     private var onItemClickListener: OnItemClickListener? = null
-    protected val trackList: ArrayList<Song> = ArrayList<Song>()
+    protected val trackList: ArrayList<Track> = ArrayList<Track>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
         val binding = TrackItemBinding.inflate(LayoutInflater.from(parent.context),parent, false)
@@ -28,8 +28,8 @@ open class TrackAdapter: RecyclerView.Adapter<TrackViewHolder> () {
         holder.bind(trackList[position])
     }
 
-    fun addAll(songList: ArrayList<Song>){
-        trackList.addAll(songList)
+    fun addAll(trackList: List<Track>){
+        this.trackList.addAll(trackList)
         notifyDataSetChanged()
     }
 
@@ -45,5 +45,5 @@ open class TrackAdapter: RecyclerView.Adapter<TrackViewHolder> () {
 }
 
 fun interface OnItemClickListener {
-    fun onItemClick(song: Song)
+    fun onItemClick(track: Track)
 }
