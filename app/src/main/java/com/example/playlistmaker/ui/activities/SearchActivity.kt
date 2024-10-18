@@ -151,8 +151,12 @@ class SearchActivity : AppCompatActivity() {
         if (searchText.isEmpty()) return
         setScreenState(ScreenState.StateWithProgressBar)
         tracksInteractor.searchTracks(searchText, object : TracksInteractor.TracksConsumer {
-            override fun consume(tracks: List<Track>) {
+            override fun consume(tracks: List<Track>?) {
                 mainThreadHandler.post {
+                    if (tracks == null) {
+                        setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(getString(R.string.error_connection)))
+                        return@post
+                    }
                     adapterTrack.clear()
                     adapterTrack.addAll(tracks)
                     setScreenState(

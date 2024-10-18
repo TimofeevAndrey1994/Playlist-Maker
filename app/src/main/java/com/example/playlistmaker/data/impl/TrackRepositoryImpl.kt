@@ -10,33 +10,38 @@ import com.example.playlistmaker.utils.tryToLong
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class TrackRepositoryImpl(private val networkClient: NetworkClient,
-                          private val tracksLocalStorage: TracksLocalStorage
-): TracksRepository {
-    override fun searchTracks(expression: String): List<Track> {
+class TrackRepositoryImpl(
+    private val networkClient: NetworkClient,
+    private val tracksLocalStorage: TracksLocalStorage
+) : TracksRepository {
+    override fun searchTracks(expression: String): List<Track>? {
         val response = networkClient.doRequest(ItunesRequest(expression))
-        if (response.resultCode == 200) {
-            return (response as ItunesResponse).results.map {
-                var trackTime = ""
-                val trackDuration = it.trackTime.tryToLong()
-                if (trackDuration > -1)
-                    trackTime = SimpleDateFormat("mm:ss", Locale.getDefault()).format(trackDuration)
-                Track(
-                    it.trackId,
-                    it.trackName,
-                    it.artistName,
-                    trackTime,
-                    it.previewUrl,
-                    it.artworkUrl100,
-                    it.country,
-                    it.releaseDate,
-                    it.collectionName,
-                    it.primaryGenreName
-                )
+        return when (response.resultCode) {
+            200 -> {
+                (response as ItunesResponse).results.map {
+                    var trackTime = ""
+                    val trackDuration = it.trackTime.tryToLong()
+                    if (trackDuration > -1)
+                        trackTime =
+                            SimpleDateFormat("mm:ss", Locale.getDefault()).format(trackDuration)
+                    Track(
+                        it.trackId,
+                        it.trackName,
+                        it.artistName,
+                        trackTime,
+                        it.previewUrl,
+                        it.artworkUrl100,
+                        it.country,
+                        it.releaseDate,
+                        it.collectionName,
+                        it.primaryGenreName
+                    )
+                }
             }
-        }
-        else {
-            return emptyList()
+
+            204 -> emptyList()
+            else -> null
+
         }
     }
 
@@ -45,7 +50,7 @@ class TrackRepositoryImpl(private val networkClient: NetworkClient,
     }
 
     override fun getTracksFromLocalStorage(): List<Track> {
-       return tracksLocalStorage.getTracks() ?: emptyList()
+        return tracksLocalStorage.getTracks() ?: emptyList()
     }
 
 }

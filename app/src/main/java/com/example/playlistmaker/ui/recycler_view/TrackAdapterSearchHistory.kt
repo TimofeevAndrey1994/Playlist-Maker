@@ -9,8 +9,8 @@ class TrackAdapterSearchHistory(private val tracksInteractor: TracksInteractor):
 
     init {
         tracksInteractor.getTracksFromLocalStorage(object : TracksInteractor.TracksConsumer {
-            override fun consume(tracks: List<Track>) {
-                trackList.addAll(tracks)
+            override fun consume(tracks: List<Track>?) {
+                trackList.addAll(tracks ?: emptyList())
             }
 
         })

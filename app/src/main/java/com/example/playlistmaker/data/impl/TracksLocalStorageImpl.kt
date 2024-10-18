@@ -12,8 +12,12 @@ class TracksSearchHistoryManager(private val context: Context): TracksLocalStora
 
     private val preferences: SharedPreferences = context.getSharedPreferences(searchHistoryKey, Context.MODE_PRIVATE)
 
+    private val gsonObject by lazy {
+        Gson()
+    }
+
     override fun saveTracks(tracks: ArrayList<Track>) {
-        val json = Gson().toJson(tracks)
+        val json = gsonObject.toJson(tracks)
         preferences.edit()
             .putString(searchHistoryKey, json)
             .apply()
@@ -21,6 +25,6 @@ class TracksSearchHistoryManager(private val context: Context): TracksLocalStora
 
     override fun getTracks(): List<Track> {
         val json = preferences.getString(searchHistoryKey, "[]")
-        return Gson().fromJson(json, Array<Track>::class.java).toCollection(ArrayList())
+        return gsonObject.fromJson(json, Array<Track>::class.java).toCollection(ArrayList())
     }
 }

@@ -10,6 +10,6 @@ interface TracksInteractor {
     fun getTracksFromLocalStorage(consumer: TracksConsumer)
 
     interface TracksConsumer {
-        fun consume(tracks: List<Track>)
+        fun consume(tracks: List<Track>?)
     }
 }
