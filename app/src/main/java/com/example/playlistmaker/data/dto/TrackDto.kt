@@ -1,13 +1,12 @@
-package com.example.playlistmaker.model
+package com.example.playlistmaker.data.dto
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
-import java.io.Serializable
 import java.util.Date
 
 @Parcelize
-data class Song(
+data class TrackDto(
     val trackId: Long,
     val trackName:  String,
     val artistName: String,

@@ -1,12 +1,10 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.ui.activities
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.example.playlistmaker.databinding.ActivityMainBinding
-import com.example.playlistmaker.databinding.ActivitySettingsBinding
 
 class MainActivity : AppCompatActivity() {
 

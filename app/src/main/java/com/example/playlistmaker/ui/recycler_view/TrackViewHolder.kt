@@ -1,4 +1,4 @@
-package com.example.playlistmaker.rv
+package com.example.playlistmaker.ui.recycler_view
 
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -6,14 +6,14 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.TrackItemBinding
-import com.example.playlistmaker.model.Song
+import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.tryToLong
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 class TrackViewHolder(val binding: TrackItemBinding): RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(model: Song) {
+    fun bind(model: Track) {
         with(binding) {
             Glide.with(root)
                 .load(model.artworkUrl100)
@@ -23,11 +23,7 @@ class TrackViewHolder(val binding: TrackItemBinding): RecyclerView.ViewHolder(bi
 
             trackName.text = model.trackName
             trackPerformer.text = model.artistName
-            val trackDuration = model.trackTime.tryToLong()
-            if (trackDuration > -1)
-                trackTime.text = SimpleDateFormat("mm:ss", Locale.getDefault()).format(trackDuration)
-            else
-                trackTime.text = ""
+            trackTime.text = model.trackTime
         }
     }
 }
