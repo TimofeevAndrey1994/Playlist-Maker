@@ -1,4 +1,4 @@
-package com.example.playlistmaker.ui.recycler_view
+package com.example.playlistmaker.ui.search.activity.recycler_view
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -28,7 +28,10 @@ open class TrackAdapter: RecyclerView.Adapter<TrackViewHolder> () {
         holder.bind(trackList[position])
     }
 
-    fun addAll(trackList: List<Track>){
+    fun addAll(trackList: List<Track>, clearPrevious: Boolean = true){
+        if (clearPrevious) {
+            this.trackList.clear()
+        }
         this.trackList.addAll(trackList)
         notifyDataSetChanged()
     }

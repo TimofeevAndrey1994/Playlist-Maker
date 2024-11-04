@@ -1,4 +1,4 @@
-package com.example.playlistmaker.data.local_storage
+package com.example.playlistmaker.data.track_local_storage
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -15,6 +15,10 @@ class TracksLocalStorageManager(context: Context): TracksLocalStorage {
 
     private val gsonObject by lazy {
         Gson()
+    }
+
+    override fun getTrackFromLocalStorageById(trackId: Long): Track? {
+        return getTracks().find { it.trackId == trackId }
     }
 
     override fun saveTrackToLocalStorage(track: Track): ArrayList<Track> {

@@ -4,6 +4,8 @@ import com.example.playlistmaker.domain.model.Track
 
 interface TracksRepository {
 
+    fun getTrackFromLocalStorageById(trackId: Long): Track?
+
     fun searchTracks(expression: String): List<Track>?
 
     fun saveTrackToLocalStorage(track: Track): ArrayList<Track>

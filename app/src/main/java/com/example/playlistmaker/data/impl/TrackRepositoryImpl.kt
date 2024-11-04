@@ -3,7 +3,7 @@ package com.example.playlistmaker.data.impl
 import com.example.playlistmaker.data.dto.ItunesRequest
 import com.example.playlistmaker.data.dto.ItunesResponse
 import com.example.playlistmaker.data.network.NetworkClient
-import com.example.playlistmaker.data.local_storage.TracksLocalStorage
+import com.example.playlistmaker.data.track_local_storage.TracksLocalStorage
 import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.tryToLong
@@ -14,6 +14,10 @@ class TrackRepositoryImpl(
     private val networkClient: NetworkClient,
     private val tracksLocalStorage: TracksLocalStorage
 ) : TracksRepository {
+    override fun getTrackFromLocalStorageById(trackId: Long): Track? {
+        return tracksLocalStorage.getTrackFromLocalStorageById(trackId)
+    }
+
     override fun searchTracks(expression: String): List<Track>? {
         val response = networkClient.doRequest(ItunesRequest(expression))
         return when (response.resultCode) {

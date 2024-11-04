@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:theme="@style/Theme.PlaylistMaker"
     android:background="?attr/background"
-    tools:context=".ui.activities.MediaPlayerActivity">
+    tools:context=".ui.media_player.activity.MediaPlayerActivity">
 
     <ImageView
         android:id="@+id/arrow_back_from_media_player"

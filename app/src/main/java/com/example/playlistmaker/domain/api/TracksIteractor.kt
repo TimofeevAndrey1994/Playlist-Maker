@@ -3,6 +3,9 @@ package com.example.playlistmaker.domain.api
 import com.example.playlistmaker.domain.model.Track
 
 interface TracksInteractor {
+
+    fun getTrackFromLocalStorageById(trackId: Long): Track?
+
     fun searchTracks(expression: String, consumer: TracksConsumer)
 
     fun saveTrackToLocalStorage(track: Track): ArrayList<Track>

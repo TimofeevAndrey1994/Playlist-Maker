@@ -14,6 +14,7 @@ class SettingsDataRepositoryImpl(private val context: Context): SettingsDataRepo
 
     override fun switchTheme(value: Boolean?){
         val currentValue = value ?: isDarkTheme()
+
         AppCompatDelegate.setDefaultNightMode(
             if (currentValue) {
                 AppCompatDelegate.MODE_NIGHT_YES

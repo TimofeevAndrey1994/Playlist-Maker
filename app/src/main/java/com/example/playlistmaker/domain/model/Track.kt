@@ -5,7 +5,6 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 import java.util.Date
 
-@Parcelize
 data class Track(
     val trackId: Long,
     val trackName:  String,
@@ -17,4 +16,4 @@ data class Track(
     val releaseDate: Date,
     val collectionName: String = "",
     val primaryGenreName: String,
-): Parcelable
+)
