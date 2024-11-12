@@ -6,6 +6,10 @@ import com.example.playlistmaker.domain.model.Track
 import kotlin.concurrent.thread
 
 class TracksInteractorImpl(private val repository: TracksRepository): TracksInteractor {
+    override fun getTrackFromLocalStorageById(trackId: Long): Track? {
+        return repository.getTrackFromLocalStorageById(trackId)
+    }
+
     override fun searchTracks(expression: String, consumer: TracksInteractor.TracksConsumer) {
         thread {
             consumer.consume(repository.searchTracks(expression))
