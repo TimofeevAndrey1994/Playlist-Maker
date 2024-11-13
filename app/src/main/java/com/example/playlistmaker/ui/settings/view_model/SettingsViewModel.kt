@@ -3,19 +3,15 @@ package com.example.playlistmaker.ui.settings.view_model
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.domain.api.SettingsDataStoreInteractor
 import com.example.playlistmaker.domain.api.SharingInteractor
-import com.example.playlistmaker.utils.App
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class SettingsViewModel(
-    private val settingsDataStoreInteractor: SettingsDataStoreInteractor,
-    private val sharingInteractor: SharingInteractor
-) : ViewModel() {
+class SettingsViewModel: ViewModel(), KoinComponent {
+
+    private val settingsDataStoreInteractor: SettingsDataStoreInteractor by inject()
+    private val sharingInteractor: SharingInteractor by inject()
 
     private val currentDarkThemeState = MutableLiveData<Boolean>()
     fun observeCurrentDarkTheme(): LiveData<Boolean> = currentDarkThemeState
@@ -39,18 +35,5 @@ class SettingsViewModel(
 
     fun openTerms(){
         sharingInteractor.openTerms()
-    }
-
-    companion object {
-        fun getViewModelFactory(): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val settingsDataStoreInteractor =
-                    (this[APPLICATION_KEY] as App).settingsDataStoreInteractor
-                val sharingInteractor =
-                    Creator.provideSharingInteractor((this[APPLICATION_KEY] as App))
-
-                SettingsViewModel(settingsDataStoreInteractor, sharingInteractor)
-            }
-        }
     }
 }

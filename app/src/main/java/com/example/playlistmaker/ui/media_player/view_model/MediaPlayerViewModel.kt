@@ -12,12 +12,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.domain.api.TracksInteractor
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.media_player.player_state.MediaPlayerState
+import org.koin.core.component.KoinComponent
 
-class MediaPlayerViewModel(trackId: Long, tracksInteractor: TracksInteractor) : ViewModel() {
+class MediaPlayerViewModel(trackId: Long) : ViewModel(), KoinComponent {
 
     private var mediaPlayer = MediaPlayer()
 
@@ -28,11 +28,11 @@ class MediaPlayerViewModel(trackId: Long, tracksInteractor: TracksInteractor) : 
     fun observeCurrentTrackTime():LiveData<String> = currentTrackTime
 
     init {
+        val tracksInteractor = getKoin().get<TracksInteractor>()
         val track = tracksInteractor.getTrackFromLocalStorageById(trackId)
         currentTrack.postValue(track)
         initMediaPlayer(track?.previewUrl)
     }
-
 
     private val mediaPlayerState = MutableLiveData(MediaPlayerState.STATE_DEFAULT)
     fun observeMediaPlayerState(): LiveData<MediaPlayerState> = mediaPlayerState
@@ -100,14 +100,5 @@ class MediaPlayerViewModel(trackId: Long, tracksInteractor: TracksInteractor) : 
         super.onCleared()
         mediaPlayer.release()
         mainThreadHandler.removeCallbacks(updateTimeRunnable)
-    }
-
-    companion object {
-        fun getViewModelFactory(trackId: Long): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = this[APPLICATION_KEY] as Application
-                MediaPlayerViewModel(trackId, Creator.provideTracksInteractor(application))
-            }
-        }
     }
 }

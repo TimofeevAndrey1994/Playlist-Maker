@@ -1,45 +1,33 @@
 package com.example.playlistmaker.ui.media_player.activity
 
-import android.annotation.SuppressLint
-import android.media.MediaPlayer
-import android.os.Build
-import android.os.Build.VERSION
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.IntentCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.ActivityMediaPlayerBinding
-import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.media_player.player_state.MediaPlayerState
 import com.example.playlistmaker.ui.media_player.view_model.MediaPlayerViewModel
 import com.example.playlistmaker.ui.search.activity.SearchActivity.Companion.TRACK_MODEL
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 class MediaPlayerActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMediaPlayerBinding
-    private lateinit var mediaPlayerViewModel: MediaPlayerViewModel
-
+    private val mediaPlayerViewModel: MediaPlayerViewModel by viewModel{
+        val trackId = intent.getLongExtra(TRACK_MODEL, -1)
+        parametersOf(trackId)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMediaPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        val trackId = intent.getLongExtra(TRACK_MODEL, -1)
-
-        mediaPlayerViewModel = ViewModelProvider(
-            this,
-            MediaPlayerViewModel.getViewModelFactory(trackId)
-        )[MediaPlayerViewModel::class.java]
 
         mediaPlayerViewModel.observeCurrentTrack().observe(this) { track ->
             with(binding) {

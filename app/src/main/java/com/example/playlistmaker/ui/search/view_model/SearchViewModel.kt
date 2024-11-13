@@ -3,24 +3,21 @@ package com.example.playlistmaker.ui.search.view_model
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.lifecycle.ViewModel
 import com.example.playlistmaker.R
-import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.domain.api.TracksInteractor
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.search.screen_state.ScreenState
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class SearchViewModel(application: Application) : AndroidViewModel(application) {
+class SearchViewModel() : ViewModel(), KoinComponent {
 
-    private val tracksInteractor by lazy {
-        Creator.provideTracksInteractor(application)
-    }
+    private val context = getKoin().get<Application>()
+
+    private val tracksInteractor: TracksInteractor by inject()
 
     private val tracksList =  ArrayList<Track>()
     private val searchHistoryTracksList =  ArrayList<Track>()
@@ -74,14 +71,14 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             override fun consume(tracks: List<Track>?) {
                 mainThreadHandler.post {
                     if (tracks == null) {
-                        setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(getApplication<Application>().getString(R.string.error_connection)))
+                        setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(context.getString(R.string.error_connection)))
                         return@post
                     }
                     tracksList.clear()
                     tracksList.addAll(tracks)
                     setScreenState(
                         if (tracks.isNotEmpty()) ScreenState.StateWithData(tracksList) else ScreenState.ErrorOrEmptyState.NoData(
-                            getApplication<Application>().getString(R.string.no_data)
+                            context.getString(R.string.no_data)
                         )
                     )
                 }
@@ -110,11 +107,5 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     companion object {
         private const val SEARCH_DEBOUNCE_DELAY = 2000L
-
-        fun getViewModelFactory(): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                SearchViewModel(this[APPLICATION_KEY] as Application)
-            }
-        }
     }
 }

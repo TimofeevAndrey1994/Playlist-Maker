@@ -3,7 +3,6 @@ package com.example.playlistmaker.ui.main.activity
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
 import com.example.playlistmaker.databinding.ActivityMainBinding
 import com.example.playlistmaker.ui.media_library.activity.MediaLibraryActivity

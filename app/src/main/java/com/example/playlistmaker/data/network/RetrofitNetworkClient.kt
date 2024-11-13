@@ -1,7 +1,6 @@
 package com.example.playlistmaker.data.network
 
 import com.example.playlistmaker.data.dto.ItunesRequest
-import com.example.playlistmaker.data.dto.ItunesResponse
 import com.example.playlistmaker.data.dto.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
