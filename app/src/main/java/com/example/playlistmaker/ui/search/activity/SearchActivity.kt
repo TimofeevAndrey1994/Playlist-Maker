@@ -114,11 +114,6 @@ class SearchActivity : AppCompatActivity() {
         binding.searchEditText.removeTextChangedListener(textWatcher)
     }
 
-    companion object {
-        private const val CLICK_DEBOUNCE_DELAY = 1000L
-        const val TRACK_MODEL = "TRACK"
-    }
-
     private fun openPlayer(track: Track, updateView: Boolean = false) {
         searchViewModel.saveTrackToLocalStorage(track, updateView)
         val intent = Intent(this@SearchActivity, MediaPlayerActivity::class.java)
@@ -130,7 +125,7 @@ class SearchActivity : AppCompatActivity() {
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false
-            mainThreadHandler.postDelayed({ isClickAllowed = true }, CLICK_DEBOUNCE_DELAY)
+            mainThreadHandler.postDelayed({ isClickAllowed = true }, CLICK_DEBOUNCE_DELAY_IN_MLS)
         }
         return current
     }
@@ -177,5 +172,8 @@ class SearchActivity : AppCompatActivity() {
             }
         }
     }
-
+    companion object {
+        private const val CLICK_DEBOUNCE_DELAY_IN_MLS = 1000L
+        const val TRACK_MODEL = "TRACK"
+    }
 }

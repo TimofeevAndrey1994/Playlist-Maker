@@ -14,10 +14,10 @@ import org.koin.dsl.module
 
 val dataModule = module {
     single<TracksRepository> {
-        TrackRepositoryImpl(get(), get())
+        TrackRepositoryImpl(get(), get(), get())
     }
     single<NetworkClient>{
-        RetrofitNetworkClient()
+        RetrofitNetworkClient(get())
     }
     single<TracksLocalStorage> {
         TracksLocalStorageManager(get())

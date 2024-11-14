@@ -30,7 +30,7 @@ class MediaPlayerViewModel(trackId: Long) : ViewModel(), KoinComponent {
     init {
         val tracksInteractor = getKoin().get<TracksInteractor>()
         val track = tracksInteractor.getTrackFromLocalStorageById(trackId)
-        currentTrack.postValue(track)
+        currentTrack.value = track
         initMediaPlayer(track?.previewUrl)
     }
 

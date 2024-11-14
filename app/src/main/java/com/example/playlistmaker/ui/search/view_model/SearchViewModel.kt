@@ -1,38 +1,36 @@
 package com.example.playlistmaker.ui.search.view_model
 
-import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.api.TracksInteractor
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.search.screen_state.ScreenState
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class SearchViewModel() : ViewModel(), KoinComponent {
-
-    private val context = getKoin().get<Application>()
+class SearchViewModel : ViewModel(), KoinComponent {
 
     private val tracksInteractor: TracksInteractor by inject()
 
-    private val tracksList =  ArrayList<Track>()
-    private val searchHistoryTracksList =  ArrayList<Track>()
+    private val tracksList = ArrayList<Track>()
+    private val searchHistoryTracksList = ArrayList<Track>()
 
     private val mainThreadHandler = Handler(Looper.getMainLooper())
 
     private val searchRunnable = Runnable { search() }
 
-    private val searchTracksState = MutableLiveData<ScreenState>(ScreenState.StateWithData(tracksList))
+    private val searchTracksState =
+        MutableLiveData<ScreenState>(ScreenState.StateWithData(tracksList))
+
     fun observeTracksState(): LiveData<ScreenState> = searchTracksState
 
     private var searchText: String = ""
     private var lastSearchText: String? = null
 
-    fun saveTrackToLocalStorage(track: Track, updateView: Boolean = false){
+    fun saveTrackToLocalStorage(track: Track, updateView: Boolean = false) {
         tracksInteractor.saveTrackToLocalStorage(track)
         if (updateView) {
             fillArrayFromLocalStorage()
@@ -51,15 +49,15 @@ class SearchViewModel() : ViewModel(), KoinComponent {
             setScreenState(ScreenState.SearchHistoryState(searchHistoryTracksList))
             return
         }
-        if (searchText.isEmpty()){
+        if (searchText.isEmpty()) {
             return
         }
         this.searchText = searchText
         mainThreadHandler.removeCallbacks(searchRunnable)
-        mainThreadHandler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
+        mainThreadHandler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY_IN_MLS)
     }
 
-    fun clearTracksSearchHistory(){
+    fun clearTracksSearchHistory() {
         tracksInteractor.clearLocalStorage()
         searchHistoryTracksList.clear()
         setScreenState(ScreenState.StateWithData(tracksList))
@@ -68,32 +66,30 @@ class SearchViewModel() : ViewModel(), KoinComponent {
     private fun search() {
         setScreenState(ScreenState.StateWithProgressBar)
         tracksInteractor.searchTracks(searchText, object : TracksInteractor.TracksConsumer {
-            override fun consume(tracks: List<Track>?) {
-                mainThreadHandler.post {
-                    if (tracks == null) {
-                        setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(context.getString(R.string.error_connection)))
-                        return@post
-                    }
+            override fun consume(tracks: List<Track>?, message: String?) {
+                if (tracks != null) {
                     tracksList.clear()
                     tracksList.addAll(tracks)
                     setScreenState(
                         if (tracks.isNotEmpty()) ScreenState.StateWithData(tracksList) else ScreenState.ErrorOrEmptyState.NoData(
-                            context.getString(R.string.no_data)
+                            message ?: ""
                         )
                     )
+                    lastSearchText = searchText
+                } else if (message != null) {
+                    setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(message))
                 }
             }
         })
-        lastSearchText = searchText
     }
 
-    private fun setScreenState(state: ScreenState){
+    private fun setScreenState(state: ScreenState) {
         searchTracksState.postValue(state)
     }
 
-    private fun fillArrayFromLocalStorage(){
+    private fun fillArrayFromLocalStorage() {
         tracksInteractor.getTracksFromLocalStorage(object : TracksInteractor.TracksConsumer {
-            override fun consume(tracks: List<Track>?) {
+            override fun consume(tracks: List<Track>?, message: String?) {
                 searchHistoryTracksList.clear()
                 searchHistoryTracksList.addAll(tracks ?: emptyList())
             }
@@ -106,6 +102,6 @@ class SearchViewModel() : ViewModel(), KoinComponent {
     }
 
     companion object {
-        private const val SEARCH_DEBOUNCE_DELAY = 2000L
+        private const val SEARCH_DEBOUNCE_DELAY_IN_MLS = 2000L
     }
 }
