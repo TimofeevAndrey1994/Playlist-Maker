@@ -1,4 +1,4 @@
-package com.example.playlistmaker.ui.media_player.player_state
+package com.example.playlistmaker.utils
 
 enum class MediaPlayerState {
     STATE_DEFAULT,

@@ -2,6 +2,7 @@ package com.example.playlistmaker.utils
 
 import android.app.Application
 import com.example.playlistmaker.data.di.dataModule
+import com.example.playlistmaker.data.di.networkModule
 import com.example.playlistmaker.domain.api.SettingsDataStoreInteractor
 import com.example.playlistmaker.domain.di.domainModule
 import com.example.playlistmaker.ui.di.viewModelsModule
@@ -16,7 +17,7 @@ class App : Application() {
         super.onCreate()
         startKoin{
             androidContext(this@App)
-            modules(dataModule, domainModule, viewModelsModule)
+            modules(dataModule, domainModule, viewModelsModule, networkModule)
         }
         settingsDataStoreInteractor = getKoin().get()
         settingsDataStoreInteractor.switchTheme(null)

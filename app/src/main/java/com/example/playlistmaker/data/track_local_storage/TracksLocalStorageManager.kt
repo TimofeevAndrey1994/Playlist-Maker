@@ -1,21 +1,16 @@
 package com.example.playlistmaker.data.track_local_storage
 
-import android.content.Context
 import android.content.SharedPreferences
+import com.example.playlistmaker.data.track_local_storage.api.TracksLocalStorage
 import com.example.playlistmaker.domain.model.Track
 import com.google.gson.Gson
 
-class TracksLocalStorageManager(context: Context): TracksLocalStorage {
+class TracksLocalStorageManager(
+    private val gsonObject: Gson,
+    private val preferences: SharedPreferences
+) : TracksLocalStorage {
 
     private val maxLength = 10
-
-    private val searchHistoryKey = "SEARCH_HISTORY"
-
-    private val preferences: SharedPreferences = context.getSharedPreferences(searchHistoryKey, Context.MODE_PRIVATE)
-
-    private val gsonObject by lazy {
-        Gson()
-    }
 
     override fun getTrackFromLocalStorageById(trackId: Long): Track? {
         return getTracks().find { it.trackId == trackId }
@@ -34,21 +29,25 @@ class TracksLocalStorageManager(context: Context): TracksLocalStorage {
 
         val json = gsonObject.toJson(trackList)
         preferences.edit()
-            .putString(searchHistoryKey, json)
+            .putString(SEARCH_HISTORY_KEY, json)
             .apply()
 
         return trackList
     }
 
     override fun getTracks(): ArrayList<Track> {
-        val json = preferences.getString(searchHistoryKey, "[]")
+        val json = preferences.getString(SEARCH_HISTORY_KEY, "[]")
         return gsonObject.fromJson(json, Array<Track>::class.java).toCollection(ArrayList())
     }
 
     override fun clearLocalStorage() {
         val json = gsonObject.toJson(emptyArray<Track>())
         preferences.edit()
-            .putString(searchHistoryKey, json)
+            .putString(SEARCH_HISTORY_KEY, json)
             .apply()
+    }
+
+    companion object {
+        const val SEARCH_HISTORY_KEY = "SEARCH_HISTORY"
     }
 }

@@ -5,7 +5,7 @@ import com.example.playlistmaker.R
 import com.example.playlistmaker.data.dto.ItunesRequest
 import com.example.playlistmaker.data.dto.ItunesResponse
 import com.example.playlistmaker.data.network.NetworkClient
-import com.example.playlistmaker.data.track_local_storage.TracksLocalStorage
+import com.example.playlistmaker.data.track_local_storage.api.TracksLocalStorage
 import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.Resource

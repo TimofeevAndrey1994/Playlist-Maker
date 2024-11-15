@@ -1,24 +1,20 @@
 package com.example.playlistmaker.ui.search.view_model
 
 import android.os.Handler
-import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.playlistmaker.domain.api.TracksInteractor
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.search.screen_state.ScreenState
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class SearchViewModel : ViewModel(), KoinComponent {
-
-    private val tracksInteractor: TracksInteractor by inject()
+class SearchViewModel(
+    private val tracksInteractor: TracksInteractor,
+    private val mainThreadHandler: Handler
+) : ViewModel() {
 
     private val tracksList = ArrayList<Track>()
     private val searchHistoryTracksList = ArrayList<Track>()
-
-    private val mainThreadHandler = Handler(Looper.getMainLooper())
 
     private val searchRunnable = Runnable { search() }
 
@@ -39,20 +35,21 @@ class SearchViewModel : ViewModel(), KoinComponent {
     }
 
     fun searchWithDebounce(searchText: String) {
+        this.searchText = searchText
+
         if (searchText == lastSearchText) {
             return
         }
+
         tracksList.clear()
         setScreenState(ScreenState.StateWithData(tracksList))
+
         fillArrayFromLocalStorage()
         if ((searchText.isEmpty()) and searchHistoryTracksList.isNotEmpty()) {
             setScreenState(ScreenState.SearchHistoryState(searchHistoryTracksList))
             return
         }
-        if (searchText.isEmpty()) {
-            return
-        }
-        this.searchText = searchText
+
         mainThreadHandler.removeCallbacks(searchRunnable)
         mainThreadHandler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY_IN_MLS)
     }
@@ -64,6 +61,9 @@ class SearchViewModel : ViewModel(), KoinComponent {
     }
 
     private fun search() {
+        if (searchText.isEmpty()) {
+            return
+        }
         setScreenState(ScreenState.StateWithProgressBar)
         tracksInteractor.searchTracks(searchText, object : TracksInteractor.TracksConsumer {
             override fun consume(tracks: List<Track>?, message: String?) {

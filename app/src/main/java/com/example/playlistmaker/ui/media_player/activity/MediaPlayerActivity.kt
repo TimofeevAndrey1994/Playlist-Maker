@@ -8,7 +8,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.ActivityMediaPlayerBinding
-import com.example.playlistmaker.ui.media_player.player_state.MediaPlayerState
+import com.example.playlistmaker.utils.MediaPlayerState
 import com.example.playlistmaker.ui.media_player.view_model.MediaPlayerViewModel
 import com.example.playlistmaker.ui.search.activity.SearchActivity.Companion.TRACK_MODEL
 import org.koin.androidx.viewmodel.ext.android.viewModel
