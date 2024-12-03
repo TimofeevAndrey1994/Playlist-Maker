@@ -3,6 +3,7 @@ package com.example.playlistmaker.domain.impl
 import com.example.playlistmaker.domain.api.TracksInteractor
 import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.model.Track
+import com.example.playlistmaker.utils.Resource
 import kotlin.concurrent.thread
 
 class TracksInteractorImpl(private val repository: TracksRepository): TracksInteractor {
@@ -12,7 +13,10 @@ class TracksInteractorImpl(private val repository: TracksRepository): TracksInte
 
     override fun searchTracks(expression: String, consumer: TracksInteractor.TracksConsumer) {
         thread {
-            consumer.consume(repository.searchTracks(expression))
+            when(val resource = repository.searchTracks(expression)){
+                is Resource.Error -> consumer.consume(null, resource.message)
+                is Resource.Success -> consumer.consume(resource.data, resource.message)
+            }
         }
     }
 

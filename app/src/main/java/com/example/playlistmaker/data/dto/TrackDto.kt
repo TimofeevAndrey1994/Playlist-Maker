@@ -1,11 +1,8 @@
 package com.example.playlistmaker.data.dto
 
-import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import kotlinx.parcelize.Parcelize
 import java.util.Date
 
-@Parcelize
 data class TrackDto(
     val trackId: Long,
     val trackName:  String,
@@ -17,4 +14,4 @@ data class TrackDto(
     val releaseDate: Date,
     val collectionName: String = "",
     val primaryGenreName: String,
-): Parcelable
+)

@@ -1,28 +1,33 @@
 package com.example.playlistmaker.data.impl
 
+import android.content.Context
+import com.example.playlistmaker.R
 import com.example.playlistmaker.data.dto.ItunesRequest
 import com.example.playlistmaker.data.dto.ItunesResponse
 import com.example.playlistmaker.data.network.NetworkClient
-import com.example.playlistmaker.data.track_local_storage.TracksLocalStorage
+import com.example.playlistmaker.data.track_local_storage.api.TracksLocalStorage
 import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.model.Track
+import com.example.playlistmaker.utils.Resource
 import com.example.playlistmaker.utils.tryToLong
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 class TrackRepositoryImpl(
     private val networkClient: NetworkClient,
-    private val tracksLocalStorage: TracksLocalStorage
+    private val tracksLocalStorage: TracksLocalStorage,
+    private val context: Context
 ) : TracksRepository {
     override fun getTrackFromLocalStorageById(trackId: Long): Track? {
         return tracksLocalStorage.getTrackFromLocalStorageById(trackId)
     }
 
-    override fun searchTracks(expression: String): List<Track>? {
+    override fun searchTracks(expression: String): Resource<List<Track>> {
         val response = networkClient.doRequest(ItunesRequest(expression))
         return when (response.resultCode) {
+            -1 -> Resource.Error(context.getString(R.string.error_connection))
             200 -> {
-                (response as ItunesResponse).results.map {
+                val trackList = (response as ItunesResponse).results.map {
                     var trackTime = ""
                     val trackDuration = it.trackTime.tryToLong()
                     if (trackDuration > -1)
@@ -41,11 +46,10 @@ class TrackRepositoryImpl(
                         it.primaryGenreName
                     )
                 }
+                val message = if (trackList.isEmpty()) context.getString(R.string.no_data) else null
+                Resource.Success(trackList, message)
             }
-
-            204 -> emptyList()
-            else -> null
-
+            else -> Resource.Error(context.getString(R.string.server_error))
         }
     }
 

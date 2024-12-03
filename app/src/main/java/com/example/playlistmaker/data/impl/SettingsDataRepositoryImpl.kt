@@ -1,18 +1,17 @@
 package com.example.playlistmaker.data.impl
 
-import android.app.Application.MODE_PRIVATE
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.playlistmaker.domain.api.SettingsDataRepository
 
-class SettingsDataRepositoryImpl(private val context: Context): SettingsDataRepository {
+class SettingsDataRepositoryImpl(
+    private val context: Context,
+    private val sharedPrefs: SharedPreferences
+) : SettingsDataRepository {
 
-    private val sharedPrefs by lazy {
-        context.getSharedPreferences(KEY_APP_IS_DARK_THEME, MODE_PRIVATE)
-    }
-
-    override fun switchTheme(value: Boolean?){
+    override fun switchTheme(value: Boolean?) {
         val currentValue = value ?: isDarkTheme()
 
         AppCompatDelegate.setDefaultNightMode(
@@ -32,19 +31,19 @@ class SettingsDataRepositoryImpl(private val context: Context): SettingsDataRepo
 
     override fun getCurrentIsDarkTheme(): Boolean = isDarkTheme()
 
-    private fun isDarkTheme(): Boolean{
+    private fun isDarkTheme(): Boolean {
         if (!sharedPrefs.contains(KEY_APP_IS_DARK_THEME)) {
-            val currentNightMode = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            val currentNightMode =
+                context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
             when (currentNightMode) {
                 Configuration.UI_MODE_NIGHT_NO -> return false
                 Configuration.UI_MODE_NIGHT_YES -> return true
             }
             return false
-        }
-        else return sharedPrefs.getBoolean(KEY_APP_IS_DARK_THEME, false)
+        } else return sharedPrefs.getBoolean(KEY_APP_IS_DARK_THEME, false)
     }
 
-    companion object{
+    companion object {
         const val KEY_APP_IS_DARK_THEME = "IS_DARK_THEME"
     }
 }
