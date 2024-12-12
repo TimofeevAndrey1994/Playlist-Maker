@@ -71,4 +71,11 @@
         <item name="android:textColor">?attr/colorOnSecondary</item>
         <item name="android:textSize">19sp</item>
     </style>
+
+    <style name="BottomNavigationTextStyle">
+        <item name="android:textSize">12sp</item>
+        <item name="fontFamily">@font/ys_display_regular</item>
+    </style>
+
+    <style name="BottomNavigationIndicatorStyle"/>
 </resources>
