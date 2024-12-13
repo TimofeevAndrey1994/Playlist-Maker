@@ -1,4 +1,4 @@
-package com.example.playlistmaker.ui.search.activity.recycler_view
+package com.example.playlistmaker.ui.search.recycler_view
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

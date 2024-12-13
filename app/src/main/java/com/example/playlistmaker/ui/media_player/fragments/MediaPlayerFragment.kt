@@ -1,35 +1,43 @@
-package com.example.playlistmaker.ui.media_player.activity
+package com.example.playlistmaker.ui.media_player.fragments
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
-import com.example.playlistmaker.databinding.ActivityMediaPlayerBinding
-import com.example.playlistmaker.utils.MediaPlayerState
+import com.example.playlistmaker.databinding.FragmentMediaPlayerBinding
+import com.example.playlistmaker.ui.base.BaseFragmentBinding
 import com.example.playlistmaker.ui.media_player.view_model.MediaPlayerViewModel
-import com.example.playlistmaker.ui.search.activity.SearchActivity.Companion.TRACK_MODEL
+import com.example.playlistmaker.utils.MediaPlayerState
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class MediaPlayerActivity : AppCompatActivity() {
+class MediaPlayerFragment : BaseFragmentBinding<FragmentMediaPlayerBinding>() {
 
-    private lateinit var binding: ActivityMediaPlayerBinding
-    private val mediaPlayerViewModel: MediaPlayerViewModel by viewModel{
-        val trackId = intent.getLongExtra(TRACK_MODEL, -1)
+    private val mediaPlayerViewModel: MediaPlayerViewModel by viewModel {
+        val trackId = requireArguments().getLong(TRACK_ID, -1)
         parametersOf(trackId)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMediaPlayerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentMediaPlayerBinding {
+        return FragmentMediaPlayerBinding.inflate(inflater, container, false)
+    }
 
-        mediaPlayerViewModel.observeCurrentTrack().observe(this) { track ->
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        mediaPlayerViewModel.observeCurrentTrack().observe(viewLifecycleOwner) { track ->
             with(binding) {
                 trackName.text = track?.trackName
                 trackPerformer.text = track?.artistName
@@ -59,15 +67,16 @@ class MediaPlayerActivity : AppCompatActivity() {
         }
 
         binding.arrowBackFromMediaPlayer.setOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
+            findNavController().navigateUp()
         }
 
-        mediaPlayerViewModel.observeMediaPlayerState().observe(this) { state ->
+        mediaPlayerViewModel.observeMediaPlayerState().observe(viewLifecycleOwner) { state ->
             setState(state)
         }
-        mediaPlayerViewModel.observeCurrentTrackTime().observe(this){ currentTrackTime ->
-            binding.tvSongDuration.text = currentTrackTime
-        }
+        mediaPlayerViewModel.observeCurrentTrackTime()
+            .observe(viewLifecycleOwner) { currentTrackTime ->
+                binding.tvSongDuration.text = currentTrackTime
+            }
     }
 
     private fun setState(state: MediaPlayerState) {
@@ -77,9 +86,11 @@ class MediaPlayerActivity : AppCompatActivity() {
                     tvSongDuration.text = getString(R.string.init_song_time)
                     ivPlay.setImageResource(R.drawable.ic_play)
                 }
+
                 MediaPlayerState.STATE_PLAYING -> {
                     ivPlay.setImageResource(R.drawable.ic_pause)
                 }
+
                 MediaPlayerState.STATE_PAUSED -> {
                     ivPlay.setImageResource(R.drawable.ic_play)
                 }
@@ -87,4 +98,11 @@ class MediaPlayerActivity : AppCompatActivity() {
         }
     }
 
+    companion object {
+        private const val TRACK_ID = "TRACK_MODEL"
+
+        fun createArgs(trackId: Long): Bundle {
+            return bundleOf(TRACK_ID to trackId)
+        }
+    }
 }
