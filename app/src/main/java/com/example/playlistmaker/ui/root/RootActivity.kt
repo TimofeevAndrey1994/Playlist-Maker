@@ -21,7 +21,8 @@ class RootActivity: AppCompatActivity() {
         val navController = navHostFragment.navController
 
         navController.addOnDestinationChangedListener { _, dest, _ ->
-            binding.bottomNavigationView.isVisible = (dest.id != R.id.mediaPlayerFragment)
+            val setOfInvisibleBottomNavFragments = arrayOf(R.id.mediaPlayerFragment)
+            binding.bottomNavigationView.isVisible = !setOfInvisibleBottomNavFragments.contains(dest.id)
         }
 
         binding.bottomNavigationView.setupWithNavController(navController)

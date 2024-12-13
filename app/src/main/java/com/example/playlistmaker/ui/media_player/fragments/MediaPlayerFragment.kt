@@ -20,9 +20,9 @@ import org.koin.core.parameter.parametersOf
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class MediaPlayerFragment: BaseFragmentBinding<FragmentMediaPlayerBinding> (){
+class MediaPlayerFragment : BaseFragmentBinding<FragmentMediaPlayerBinding>() {
 
-    private val mediaPlayerViewModel: MediaPlayerViewModel by viewModel{
+    private val mediaPlayerViewModel: MediaPlayerViewModel by viewModel {
         val trackId = requireArguments().getLong(TRACK_ID, -1)
         parametersOf(trackId)
     }
@@ -73,9 +73,10 @@ class MediaPlayerFragment: BaseFragmentBinding<FragmentMediaPlayerBinding> (){
         mediaPlayerViewModel.observeMediaPlayerState().observe(viewLifecycleOwner) { state ->
             setState(state)
         }
-        mediaPlayerViewModel.observeCurrentTrackTime().observe(viewLifecycleOwner){ currentTrackTime ->
-            binding.tvSongDuration.text = currentTrackTime
-        }
+        mediaPlayerViewModel.observeCurrentTrackTime()
+            .observe(viewLifecycleOwner) { currentTrackTime ->
+                binding.tvSongDuration.text = currentTrackTime
+            }
     }
 
     private fun setState(state: MediaPlayerState) {
@@ -85,9 +86,11 @@ class MediaPlayerFragment: BaseFragmentBinding<FragmentMediaPlayerBinding> (){
                     tvSongDuration.text = getString(R.string.init_song_time)
                     ivPlay.setImageResource(R.drawable.ic_play)
                 }
+
                 MediaPlayerState.STATE_PLAYING -> {
                     ivPlay.setImageResource(R.drawable.ic_pause)
                 }
+
                 MediaPlayerState.STATE_PAUSED -> {
                     ivPlay.setImageResource(R.drawable.ic_play)
                 }
@@ -98,7 +101,7 @@ class MediaPlayerFragment: BaseFragmentBinding<FragmentMediaPlayerBinding> (){
     companion object {
         private const val TRACK_ID = "TRACK_MODEL"
 
-        fun createArgs(trackId: Long): Bundle{
+        fun createArgs(trackId: Long): Bundle {
             return bundleOf(TRACK_ID to trackId)
         }
     }
