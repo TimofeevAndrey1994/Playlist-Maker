@@ -21,6 +21,6 @@ val domainModule = module {
         SharingInteractorImpl(get())
     }
     single<MediaPlayerInteractor> {
-        MediaPlayerInteractorImpl(get(), get())
+        MediaPlayerInteractorImpl(get())
     }
 }

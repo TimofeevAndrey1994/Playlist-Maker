@@ -1,5 +1,7 @@
 package com.example.playlistmaker.domain.api
 
+import kotlinx.coroutines.flow.Flow
+
 interface MediaPlayerManager {
     fun init(
         trackSource: String?,
@@ -9,8 +11,8 @@ interface MediaPlayerManager {
 
     fun play()
     fun pause()
-    fun getCurrentPosition(): Int
     fun clear()
+    fun getCurrentPositionFlowable(): Flow<Int>
 
     interface InitializePlayerConsumer {
         fun consume()

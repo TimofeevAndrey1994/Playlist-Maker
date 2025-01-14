@@ -2,6 +2,9 @@ package com.example.playlistmaker.data.impl
 
 import android.media.MediaPlayer
 import com.example.playlistmaker.domain.api.MediaPlayerManager
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 class MediaPlayerManagerImpl(private val mediaPlayer: MediaPlayer) : MediaPlayerManager {
 
@@ -35,14 +38,14 @@ class MediaPlayerManagerImpl(private val mediaPlayer: MediaPlayer) : MediaPlayer
         mediaPlayer.pause()
     }
 
-    override fun getCurrentPosition(): Int {
-        if (!mediaPlayer.isPlaying) {
-            return -1
-        }
-        return mediaPlayer.currentPosition
-    }
-
     override fun clear() {
         mediaPlayer.reset()
+    }
+
+    override fun getCurrentPositionFlowable(): Flow<Int> = flow {
+        while (true){
+            delay(300L)
+            emit(mediaPlayer.currentPosition)
+        }
     }
 }

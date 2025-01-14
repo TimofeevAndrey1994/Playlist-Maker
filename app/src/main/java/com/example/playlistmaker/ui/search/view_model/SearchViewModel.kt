@@ -1,22 +1,25 @@
 package com.example.playlistmaker.ui.search.view_model
 
-import android.os.Handler
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.domain.api.TracksInteractor
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.search.screen_state.ScreenState
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
-class SearchViewModel(
-    private val tracksInteractor: TracksInteractor,
-    private val mainThreadHandler: Handler
-) : ViewModel() {
+class SearchViewModel(private val tracksInteractor: TracksInteractor) : ViewModel() {
 
     private val tracksList = ArrayList<Track>()
-    private val searchHistoryTracksList = ArrayList<Track>()
+    private val searchHistoryTracksList = tracks()
 
-    private val searchRunnable = Runnable { search() }
+    private fun tracks() = ArrayList<Track>()
+
+    private var searchJob: Job? = null
 
     private val searchTracksState =
         MutableLiveData<ScreenState>(ScreenState.StateWithData(tracksList))
@@ -50,8 +53,11 @@ class SearchViewModel(
             return
         }
 
-        mainThreadHandler.removeCallbacks(searchRunnable)
-        mainThreadHandler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY_IN_MLS)
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_DELAY_IN_MLS)
+            search()
+        }
     }
 
     fun clearTracksSearchHistory() {
@@ -65,22 +71,25 @@ class SearchViewModel(
             return
         }
         setScreenState(ScreenState.StateWithProgressBar)
-        tracksInteractor.searchTracks(searchText, object : TracksInteractor.TracksConsumer {
-            override fun consume(tracks: List<Track>?, message: String?) {
-                if (tracks != null) {
-                    tracksList.clear()
-                    tracksList.addAll(tracks)
-                    setScreenState(
-                        if (tracks.isNotEmpty()) ScreenState.StateWithData(tracksList) else ScreenState.ErrorOrEmptyState.NoData(
-                            message ?: ""
+        viewModelScope.launch {
+            tracksInteractor.searchTracks(searchText)
+                .collect { pair ->
+                    val tracks = pair.first
+                    val message = pair.second
+                    if (tracks != null) {
+                        tracksList.clear()
+                        tracksList.addAll(tracks)
+                        setScreenState(
+                            if (tracks.isNotEmpty()) ScreenState.StateWithData(tracksList) else ScreenState.ErrorOrEmptyState.NoData(
+                                message ?: ""
+                            )
                         )
-                    )
-                    lastSearchText = searchText
-                } else if (message != null) {
-                    setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(message))
+                        lastSearchText = searchText
+                    } else if (message != null) {
+                        setScreenState(ScreenState.ErrorOrEmptyState.ConnectionError(message))
+                    }
                 }
-            }
-        })
+        }
     }
 
     private fun setScreenState(state: ScreenState) {
@@ -88,17 +97,13 @@ class SearchViewModel(
     }
 
     private fun fillArrayFromLocalStorage() {
-        tracksInteractor.getTracksFromLocalStorage(object : TracksInteractor.TracksConsumer {
-            override fun consume(tracks: List<Track>?, message: String?) {
-                searchHistoryTracksList.clear()
-                searchHistoryTracksList.addAll(tracks ?: emptyList())
-            }
-        })
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        mainThreadHandler.removeCallbacks(searchRunnable)
+        runBlocking {
+            tracksInteractor.getTracksFromLocalStorage()
+                .collect{ tracks ->
+                    searchHistoryTracksList.clear()
+                    searchHistoryTracksList.addAll(tracks)
+                }
+        }
     }
 
     companion object {
