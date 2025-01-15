@@ -9,13 +9,15 @@ interface MediaPlayerInteractor {
         trackSource: String?,
         initializeConsumer: InitializeConsumer,
         completeConsumer: CompleteConsumer,
-        playConsumer: PlayConsumer,
-        pauseConsumer: PauseConsumer
     )
 
-    fun nextState(mediaPlayerState: MediaPlayerState): Flow<MediaPlayerState>
+    fun nextState(
+        mediaPlayerState: MediaPlayerState,
+        playConsumer: PlayConsumer,
+        pauseConsumer: PauseConsumer
+    ): Flow<MediaPlayerState>
 
-    suspend fun trackTimeInStringFlowable(): Flow<String>
+    fun trackTimeInString(): String
 
     fun clear()
 

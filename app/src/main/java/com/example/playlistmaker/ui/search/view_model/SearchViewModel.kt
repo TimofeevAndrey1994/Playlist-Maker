@@ -10,7 +10,6 @@ import com.example.playlistmaker.ui.search.screen_state.ScreenState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class SearchViewModel(private val tracksInteractor: TracksInteractor) : ViewModel() {
 
@@ -97,7 +96,7 @@ class SearchViewModel(private val tracksInteractor: TracksInteractor) : ViewMode
     }
 
     private fun fillArrayFromLocalStorage() {
-        runBlocking {
+        viewModelScope.launch {
             tracksInteractor.getTracksFromLocalStorage()
                 .collect{ tracks ->
                     searchHistoryTracksList.clear()

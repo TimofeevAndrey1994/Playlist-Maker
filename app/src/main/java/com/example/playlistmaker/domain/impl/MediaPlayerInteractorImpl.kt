@@ -6,22 +6,15 @@ import com.example.playlistmaker.domain.api.MediaPlayerInteractor
 import com.example.playlistmaker.utils.MediaPlayerState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
-class MediaPlayerInteractorImpl(private val mediaPlayerManager: MediaPlayerManager) : MediaPlayerInteractor {
-
-    private var playConsumer: MediaPlayerInteractor.PlayConsumer? = null
-    private var pauseConsumer: MediaPlayerInteractor.PauseConsumer? = null
+class MediaPlayerInteractorImpl(private val mediaPlayerManager: MediaPlayerManager) :
+    MediaPlayerInteractor {
 
     override fun initialize(
         trackSource: String?,
         initializeConsumer: MediaPlayerInteractor.InitializeConsumer,
-        completeConsumer: MediaPlayerInteractor.CompleteConsumer,
-        playConsumer: MediaPlayerInteractor.PlayConsumer,
-        pauseConsumer: MediaPlayerInteractor.PauseConsumer
+        completeConsumer: MediaPlayerInteractor.CompleteConsumer
     ) {
-        this.playConsumer  = playConsumer
-        this.pauseConsumer = pauseConsumer
 
         mediaPlayerManager.init(trackSource, object : MediaPlayerManager.InitializePlayerConsumer {
             override fun consume() {
@@ -36,27 +29,27 @@ class MediaPlayerInteractorImpl(private val mediaPlayerManager: MediaPlayerManag
     }
 
     @SuppressLint("DefaultLocale")
-    override suspend fun trackTimeInStringFlowable(): Flow<String> {
-        return mediaPlayerManager.getCurrentPositionFlowable()
-            .map { time ->
-                val seconds = time / 1000L
-                String.format("%02d:%02d", seconds / 60, seconds % 60)
-            }
+    override fun trackTimeInString(): String {
+        val seconds = mediaPlayerManager.getCurrentPosition() / 1000L
+        return String.format("%02d:%02d", seconds / 60, seconds % 60)
     }
 
     override fun nextState(
-        mediaPlayerState: MediaPlayerState): Flow<MediaPlayerState> = flow {
+        mediaPlayerState: MediaPlayerState,
+        playConsumer: MediaPlayerInteractor.PlayConsumer,
+        pauseConsumer: MediaPlayerInteractor.PauseConsumer
+    ): Flow<MediaPlayerState> = flow {
         if (mediaPlayerState == MediaPlayerState.STATE_DEFAULT) {
-             emit(MediaPlayerState.STATE_DEFAULT)
+            emit(MediaPlayerState.STATE_DEFAULT)
         }
         val nextState = mediaPlayerState.getNextState()
         nextState.let {
             if (it == MediaPlayerState.STATE_PLAYING) {
                 mediaPlayerManager.play()
-                playConsumer?.consume()
+                playConsumer.consume()
             } else if (it == MediaPlayerState.STATE_PAUSED) {
                 mediaPlayerManager.pause()
-                pauseConsumer?.consume()
+                pauseConsumer.consume()
             }
             emit(nextState)
         }

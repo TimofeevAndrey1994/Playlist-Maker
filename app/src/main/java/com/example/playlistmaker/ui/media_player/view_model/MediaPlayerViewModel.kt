@@ -10,8 +10,8 @@ import com.example.playlistmaker.domain.api.TracksInteractor
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.MediaPlayerState
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @SuppressLint("NullSafeMutableLiveData")
 class MediaPlayerViewModel(
@@ -27,6 +27,18 @@ class MediaPlayerViewModel(
 
     private var currentTrackTime = MutableLiveData<String>()
     fun observeCurrentTrackTime(): LiveData<String> = currentTrackTime
+
+
+    private val playConsumer = MediaPlayerInteractor.PlayConsumer {
+        updateTimeJob?.cancel()
+        updateTimeJob = viewModelScope.launch {
+            while (true) {
+                delay(300L)
+                currentTrackTime.postValue(mediaPlayerInteractor.trackTimeInString())
+            }
+        }
+    }
+    private val pauseConsumer = MediaPlayerInteractor.PauseConsumer { updateTimeJob?.cancel() }
 
     init {
         viewModelScope.launch {
@@ -48,24 +60,15 @@ class MediaPlayerViewModel(
             completeConsumer = {
                 mediaPlayerState.postValue(MediaPlayerState.STATE_PREPARED)
                 updateTimeJob?.cancel()
-            },
-            playConsumer = {
-                updateTimeJob = viewModelScope.launch {
-                    mediaPlayerInteractor.trackTimeInStringFlowable()
-                        .collect { value ->
-                            currentTrackTime.postValue(value)
-                        }
-                }
-            },
-            pauseConsumer = { updateTimeJob?.cancel() })
+            })
     }
 
     fun nextState() {
         if (mediaPlayerState.value == MediaPlayerState.STATE_DEFAULT) {
             return
         }
-        runBlocking {
-            mediaPlayerInteractor.nextState(mediaPlayerState.value!!)
+        viewModelScope.launch {
+            mediaPlayerInteractor.nextState(mediaPlayerState.value!!, playConsumer, pauseConsumer)
                 .collect{ value ->
                     mediaPlayerState.postValue(value)
                 }
