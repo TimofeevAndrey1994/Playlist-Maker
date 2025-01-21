@@ -1,31 +1,39 @@
 package com.example.playlistmaker.domain.api
 
 import com.example.playlistmaker.utils.MediaPlayerState
+import kotlinx.coroutines.flow.Flow
 
 interface MediaPlayerInteractor {
 
     fun initialize(
         trackSource: String?,
         initializeConsumer: InitializeConsumer,
-        completeConsumer: CompleteConsumer
+        completeConsumer: CompleteConsumer,
     )
 
     fun nextState(
         mediaPlayerState: MediaPlayerState,
-        updateTimeConsumer: UpdateTimeConsumer
-    ): MediaPlayerState
+        playConsumer: PlayConsumer,
+        pauseConsumer: PauseConsumer
+    ): Flow<MediaPlayerState>
+
+    fun trackTimeInString(): String
 
     fun clear()
 
-    interface UpdateTimeConsumer {
-        fun consume(time: Int)
-    }
-
-    interface InitializeConsumer {
+    fun interface InitializeConsumer {
         fun consume()
     }
 
-    interface CompleteConsumer {
+    fun interface CompleteConsumer {
+        fun consume()
+    }
+
+    fun interface PlayConsumer {
+        fun consume()
+    }
+
+    fun interface PauseConsumer {
         fun consume()
     }
 }

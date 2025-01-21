@@ -10,6 +10,8 @@ import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.Resource
 import com.example.playlistmaker.utils.tryToLong
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -18,14 +20,17 @@ class TrackRepositoryImpl(
     private val tracksLocalStorage: TracksLocalStorage,
     private val context: Context
 ) : TracksRepository {
-    override fun getTrackFromLocalStorageById(trackId: Long): Track? {
-        return tracksLocalStorage.getTrackFromLocalStorageById(trackId)
+
+    override fun getTrackFromLocalStorageById(trackId: Long): Flow<Track?> {
+        return flow {
+            emit(tracksLocalStorage.getTrackFromLocalStorageById(trackId))
+        }
     }
 
-    override fun searchTracks(expression: String): Resource<List<Track>> {
+    override fun searchTracks(expression: String): Flow<Resource<List<Track>>> = flow {
         val response = networkClient.doRequest(ItunesRequest(expression))
-        return when (response.resultCode) {
-            -1 -> Resource.Error(context.getString(R.string.error_connection))
+        when (response.resultCode) {
+            -1 -> emit(Resource.Error(context.getString(R.string.error_connection)))
             200 -> {
                 val trackList = (response as ItunesResponse).results.map {
                     var trackTime = ""
@@ -47,18 +52,18 @@ class TrackRepositoryImpl(
                     )
                 }
                 val message = if (trackList.isEmpty()) context.getString(R.string.no_data) else null
-                Resource.Success(trackList, message)
+                emit(Resource.Success(trackList, message))
             }
-            else -> Resource.Error(context.getString(R.string.server_error))
+            else -> emit(Resource.Error(context.getString(R.string.server_error)))
         }
     }
 
-    override fun saveTrackToLocalStorage(track: Track): ArrayList<Track> {
-        return tracksLocalStorage.saveTrackToLocalStorage(track)
+    override fun saveTrackToLocalStorage(track: Track) {
+        tracksLocalStorage.saveTrackToLocalStorage(track)
     }
 
-    override fun getTracksFromLocalStorage(): List<Track> {
-        return tracksLocalStorage.getTracks() ?: emptyList()
+    override fun getTracksFromLocalStorage(): Flow<List<Track>> = flow {
+        emit(tracksLocalStorage.getTracks() ?: emptyList())
     }
 
     override fun clearLocalStorage() {

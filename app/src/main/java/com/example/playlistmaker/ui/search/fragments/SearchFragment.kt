@@ -2,8 +2,6 @@ package com.example.playlistmaker.ui.search.fragments
 
 import android.content.Context
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -17,6 +15,7 @@ import com.example.playlistmaker.databinding.FragmentSearchBinding
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.base.BaseFragmentBinding
 import com.example.playlistmaker.ui.media_player.fragments.MediaPlayerFragment
+import com.example.playlistmaker.ui.root.RootActivity
 import com.example.playlistmaker.ui.search.recycler_view.TrackAdapter
 import com.example.playlistmaker.ui.search.screen_state.ScreenState
 import com.example.playlistmaker.ui.search.view_model.SearchViewModel
@@ -25,10 +24,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class SearchFragment : BaseFragmentBinding<FragmentSearchBinding>() {
 
     private val searchViewModel: SearchViewModel by viewModel()
-
-    private var isClickAllowed = true
-
-    private val mainThreadHandler = Handler(Looper.getMainLooper())
 
     private val adapterTrack = TrackAdapter()
     private val adapterTrackSearch = TrackAdapter()
@@ -51,14 +46,14 @@ class SearchFragment : BaseFragmentBinding<FragmentSearchBinding>() {
         with(binding) {
 
             adapterTrack.setOnItemClickListener { song ->
-                if (itemClickWithDebounce()) {
+                if ((requireActivity() as RootActivity).itemClickWithDebounce()) {
                     openPlayer(song)
                 }
             }
             recyclerView.adapter = adapterTrack
 
             adapterTrackSearch.setOnItemClickListener { song ->
-                if (itemClickWithDebounce()) {
+                if ((requireActivity() as RootActivity).itemClickWithDebounce()) {
                     openPlayer(song, true)
                 }
             }
@@ -127,15 +122,6 @@ class SearchFragment : BaseFragmentBinding<FragmentSearchBinding>() {
         )
     }
 
-    private fun itemClickWithDebounce(): Boolean {
-        val current = isClickAllowed
-        if (isClickAllowed) {
-            isClickAllowed = false
-            mainThreadHandler.postDelayed({ isClickAllowed = true }, CLICK_DEBOUNCE_DELAY_IN_MLS)
-        }
-        return current
-    }
-
     private fun renderScreenState(state: ScreenState) {
 
         fun setViewsVisible(visibilityFlag: Boolean, vararg views: View) {
@@ -177,9 +163,5 @@ class SearchFragment : BaseFragmentBinding<FragmentSearchBinding>() {
                 }
             }
         }
-    }
-
-    companion object {
-        private const val CLICK_DEBOUNCE_DELAY_IN_MLS = 1000L
     }
 }

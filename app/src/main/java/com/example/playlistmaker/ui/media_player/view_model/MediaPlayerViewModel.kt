@@ -1,21 +1,26 @@
 package com.example.playlistmaker.ui.media_player.view_model
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.domain.api.MediaPlayerInteractor
 import com.example.playlistmaker.domain.api.TracksInteractor
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.MediaPlayerState
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@SuppressLint("NullSafeMutableLiveData")
 class MediaPlayerViewModel(
     trackId: Long,
     private val mediaPlayerInteractor: MediaPlayerInteractor,
     tracksInteractor: TracksInteractor
 ) : ViewModel() {
 
+    private var updateTimeJob: Job? = null
 
     private val currentTrack = MutableLiveData<Track>(null)
     fun observeCurrentTrack(): LiveData<Track> = currentTrack
@@ -23,9 +28,27 @@ class MediaPlayerViewModel(
     private var currentTrackTime = MutableLiveData<String>()
     fun observeCurrentTrackTime(): LiveData<String> = currentTrackTime
 
+
+    private val playConsumer = MediaPlayerInteractor.PlayConsumer {
+        updateTimeJob?.cancel()
+        updateTimeJob = viewModelScope.launch {
+            while (true) {
+                delay(300L)
+                currentTrackTime.postValue(mediaPlayerInteractor.trackTimeInString())
+            }
+        }
+    }
+    private val pauseConsumer = MediaPlayerInteractor.PauseConsumer { updateTimeJob?.cancel() }
+
     init {
-        val track = tracksInteractor.getTrackFromLocalStorageById(trackId)
-        currentTrack.value = track!!
+        viewModelScope.launch {
+            tracksInteractor.getTrackFromLocalStorageById(trackId)
+                .collect { track ->
+                    if (track != null) {
+                        currentTrack.value = track
+                    }
+                }
+        }
     }
 
     private val mediaPlayerState = MutableLiveData(MediaPlayerState.STATE_DEFAULT)
@@ -33,16 +56,10 @@ class MediaPlayerViewModel(
 
     init {
         mediaPlayerInteractor.initialize(currentTrack.value?.previewUrl,
-            object : MediaPlayerInteractor.InitializeConsumer {
-                override fun consume() {
-                    mediaPlayerState.postValue(MediaPlayerState.STATE_PREPARED)
-                }
-            },
-            object : MediaPlayerInteractor.CompleteConsumer {
-                override fun consume() {
-                    mediaPlayerState.postValue(MediaPlayerState.STATE_PREPARED)
-                }
-
+            initializeConsumer = { mediaPlayerState.postValue(MediaPlayerState.STATE_PREPARED) },
+            completeConsumer = {
+                mediaPlayerState.postValue(MediaPlayerState.STATE_PREPARED)
+                updateTimeJob?.cancel()
             })
     }
 
@@ -50,22 +67,12 @@ class MediaPlayerViewModel(
         if (mediaPlayerState.value == MediaPlayerState.STATE_DEFAULT) {
             return
         }
-        mediaPlayerState.value = mediaPlayerInteractor.nextState(
-            mediaPlayerState.value!!,
-            object : MediaPlayerInteractor.UpdateTimeConsumer {
-                @SuppressLint("DefaultLocale")
-                override fun consume(time: Int) {
-                    Log.d("currentTime", time.toString())
-                    val seconds = time / 1000L
-                    currentTrackTime.postValue(
-                        String.format(
-                            "%02d:%02d",
-                            seconds / 60,
-                            seconds % 60
-                        )
-                    )
+        viewModelScope.launch {
+            mediaPlayerInteractor.nextState(mediaPlayerState.value!!, playConsumer, pauseConsumer)
+                .collect{ value ->
+                    mediaPlayerState.postValue(value)
                 }
-            })
+        }
     }
 
     override fun onCleared() {

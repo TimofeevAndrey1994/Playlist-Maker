@@ -9,8 +9,8 @@ interface MediaPlayerManager {
 
     fun play()
     fun pause()
-    fun getCurrentPosition(): Int
     fun clear()
+    fun getCurrentPosition(): Int
 
     interface InitializePlayerConsumer {
         fun consume()

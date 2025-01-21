@@ -2,8 +2,6 @@ package com.example.playlistmaker.data.di
 
 import android.content.Context
 import android.media.MediaPlayer
-import android.os.Handler
-import android.os.Looper
 import com.example.playlistmaker.data.impl.SettingsDataRepositoryImpl
 import com.example.playlistmaker.data.impl.SettingsDataRepositoryImpl.Companion.KEY_APP_IS_DARK_THEME
 import com.example.playlistmaker.data.impl.TrackRepositoryImpl
@@ -48,9 +46,6 @@ val dataModule = module {
     }
     single<MediaPlayerManager> {
         MediaPlayerManagerImpl(get())
-    }
-    single {
-        Handler(Looper.getMainLooper())
     }
     single {
         MediaPlayer()
