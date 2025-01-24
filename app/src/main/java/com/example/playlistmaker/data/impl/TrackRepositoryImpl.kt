@@ -2,6 +2,8 @@ package com.example.playlistmaker.data.impl
 
 import android.content.Context
 import com.example.playlistmaker.R
+import com.example.playlistmaker.data.convertors.TrackConvertor
+import com.example.playlistmaker.data.db.AppDataBase
 import com.example.playlistmaker.data.dto.ItunesRequest
 import com.example.playlistmaker.data.dto.ItunesResponse
 import com.example.playlistmaker.data.network.NetworkClient
@@ -10,21 +12,35 @@ import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.Resource
 import com.example.playlistmaker.utils.tryToLong
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transform
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class TrackRepositoryImpl(
     private val networkClient: NetworkClient,
     private val tracksLocalStorage: TracksLocalStorage,
-    private val context: Context
+    private val context: Context,
+    private val dataBase: AppDataBase,
+    private val trackConvertor: TrackConvertor
 ) : TracksRepository {
 
     override fun getTrackFromLocalStorageById(trackId: Long): Flow<Track?> {
         return flow {
-            emit(tracksLocalStorage.getTrackFromLocalStorageById(trackId))
-        }
+            var isFavouriteRes = false
+            var track = tracksLocalStorage.getTrackFromLocalStorageById(trackId)
+            val trackEntity = dataBase.getTrackDao().getTrackById(trackId)
+            trackEntity?.let { isFavouriteRes = true }
+            if (track == null) {
+                trackEntity?.let { track = trackConvertor.map(trackEntity) }
+            }
+            emit(track.apply { track?.isFavourite = isFavouriteRes })
+        }.flowOn(Dispatchers.IO)
     }
 
     override fun searchTracks(expression: String): Flow<Resource<List<Track>>> = flow {
@@ -54,11 +70,12 @@ class TrackRepositoryImpl(
                 val message = if (trackList.isEmpty()) context.getString(R.string.no_data) else null
                 emit(Resource.Success(trackList, message))
             }
+
             else -> emit(Resource.Error(context.getString(R.string.server_error)))
         }
     }
 
-    override fun saveTrackToLocalStorage(track: Track) {
+    override suspend fun saveTrackToLocalStorage(track: Track) {
         tracksLocalStorage.saveTrackToLocalStorage(track)
     }
 
@@ -66,8 +83,23 @@ class TrackRepositoryImpl(
         emit(tracksLocalStorage.getTracks() ?: emptyList())
     }
 
-    override fun clearLocalStorage() {
+    override suspend fun clearLocalStorage() {
         tracksLocalStorage.clearLocalStorage()
+    }
+
+    override fun getAllFavouriteTracks(): Flow<Resource<List<Track>>> {
+        return dataBase.getTrackDao().getFavouriteTracks()
+            .map { it.map { track -> trackConvertor.map(track) } }
+            .transform { tracks -> emit(Resource.Success(tracks, context.getString(R.string.no_data_in_media_library))) }
+    }
+
+    override suspend fun saveTrackToFavouriteTable(track: Track) {
+        dataBase.getTrackDao()
+            .saveTrackToFavouriteTable(trackConvertor.map(track).apply { addedDate = Date().time })
+    }
+
+    override suspend fun deleteTrackFromFavouriteTable(track: Track) {
+        dataBase.getTrackDao().deleteTrackFromFavouriteTable(trackConvertor.map(track))
     }
 
 }

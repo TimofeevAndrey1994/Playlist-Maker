@@ -52,10 +52,11 @@ class MediaPlayerFragment : BaseFragmentBinding<FragmentMediaPlayerBinding>() {
                 val album = track?.collectionName ?: ""
                 groupAlbum.isVisible = album.isNotEmpty()
                 tvAlbumValue.text = track?.collectionName
+
                 val releaseDate = track?.releaseDate
-                if (releaseDate != null)
-                    tvYearValue.text =
-                        SimpleDateFormat("yyyy", Locale.getDefault()).format(releaseDate)
+                if (releaseDate != null) {
+                    tvYearValue.text = SimpleDateFormat("yyyy", Locale.getDefault()).format(releaseDate)
+                }
                 tvGenreValue.text = track?.primaryGenreName
                 tvCountryValue.text = track?.country
 
@@ -68,6 +69,14 @@ class MediaPlayerFragment : BaseFragmentBinding<FragmentMediaPlayerBinding>() {
 
         binding.arrowBackFromMediaPlayer.setOnClickListener {
             findNavController().navigateUp()
+        }
+
+        binding.ivLike.setOnClickListener {
+            mediaPlayerViewModel.onLike()
+        }
+
+        mediaPlayerViewModel.observeIsFavouriteTrack().observe(viewLifecycleOwner) { value ->
+            binding.ivLike.setImageResource(if (value) R.drawable.ic_fill_like else R.drawable.ic_like)
         }
 
         mediaPlayerViewModel.observeMediaPlayerState().observe(viewLifecycleOwner) { state ->

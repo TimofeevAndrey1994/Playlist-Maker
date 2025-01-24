@@ -9,9 +9,15 @@ interface TracksInteractor {
 
     fun searchTracks(expression: String): Flow<Pair<List<Track>?, String?>>
 
-    fun saveTrackToLocalStorage(track: Track)
+    suspend fun saveTrackToLocalStorage(track: Track)
 
-    fun clearLocalStorage()
+    suspend fun clearLocalStorage()
 
     fun getTracksFromLocalStorage(): Flow<List<Track>>
+
+    suspend fun saveTrackToFavouriteDb(track: Track)
+
+    suspend fun deleteTrackFromFavouriteTable(track: Track)
+
+    fun getFavouriteTracks(): Flow<Pair<List<Track>?, String?>>
 }

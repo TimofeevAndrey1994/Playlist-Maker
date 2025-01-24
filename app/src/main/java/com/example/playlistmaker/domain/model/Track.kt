@@ -3,6 +3,7 @@ package com.example.playlistmaker.domain.model
 import com.google.gson.annotations.SerializedName
 import java.util.Date
 
+
 data class Track(
     val trackId: Long,
     val trackName:  String,
@@ -14,4 +15,5 @@ data class Track(
     val releaseDate: Date,
     val collectionName: String = "",
     val primaryGenreName: String,
+    var isFavourite: Boolean = false
 )

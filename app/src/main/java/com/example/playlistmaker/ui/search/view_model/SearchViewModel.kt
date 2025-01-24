@@ -28,11 +28,13 @@ class SearchViewModel(private val tracksInteractor: TracksInteractor) : ViewMode
     private var searchText: String = ""
     private var lastSearchText: String? = null
 
-    fun saveTrackToLocalStorage(track: Track, updateView: Boolean = false) {
-        tracksInteractor.saveTrackToLocalStorage(track)
-        if (updateView) {
-            fillArrayFromLocalStorage()
-            setScreenState(ScreenState.SearchHistoryState(searchHistoryTracksList))
+     fun saveTrackToLocalStorage(track: Track, updateView: Boolean = false) {
+        viewModelScope.launch {
+            tracksInteractor.saveTrackToLocalStorage(track)
+            if (updateView) {
+                fillArrayFromLocalStorage()
+                setScreenState(ScreenState.SearchHistoryState(searchHistoryTracksList))
+            }
         }
     }
 
@@ -59,8 +61,10 @@ class SearchViewModel(private val tracksInteractor: TracksInteractor) : ViewMode
         }
     }
 
-    fun clearTracksSearchHistory() {
-        tracksInteractor.clearLocalStorage()
+     fun clearTracksSearchHistory() {
+        viewModelScope.launch {
+            tracksInteractor.clearLocalStorage()
+        }
         searchHistoryTracksList.clear()
         setScreenState(ScreenState.StateWithData(tracksList))
     }
