@@ -12,7 +12,7 @@ class FavouriteTracksViewModel(
     private val tracksInteractor: TracksInteractor
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<FavouriteTracksScreenState?>(null)
+    private val _uiState = MutableStateFlow<FavouriteTracksScreenState?>(FavouriteTracksScreenState.Loading)
     val uiState: StateFlow<FavouriteTracksScreenState?> = _uiState
 
     init {
@@ -22,7 +22,6 @@ class FavouriteTracksViewModel(
                 val tracks = pair.first
                 val message = pair.second
                 if (tracks?.isEmpty() == true) {
-                    //_uiState.value = FavouriteTracksScreenState.Empty(context.getString(R.string.no_data_in_media_library))
                     _uiState.value = FavouriteTracksScreenState.Empty(message ?: "")
                 } else {
                     _uiState.value = FavouriteTracksScreenState.Content(tracks!!)
