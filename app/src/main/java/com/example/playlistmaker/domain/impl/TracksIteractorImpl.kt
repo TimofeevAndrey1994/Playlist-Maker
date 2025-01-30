@@ -21,15 +21,32 @@ class TracksInteractorImpl(private val repository: TracksRepository): TracksInte
         }
     }
 
-    override fun saveTrackToLocalStorage(track: Track) {
+    override suspend fun saveTrackToLocalStorage(track: Track) {
         repository.saveTrackToLocalStorage(track)
     }
 
-    override fun clearLocalStorage() {
+    override suspend fun clearLocalStorage() {
         repository.clearLocalStorage()
     }
 
     override fun getTracksFromLocalStorage(): Flow<List<Track>> {
         return repository.getTracksFromLocalStorage()
+    }
+
+    override suspend fun saveTrackToFavouriteDb(track: Track) {
+        repository.saveTrackToFavouriteTable(track)
+    }
+
+    override suspend fun deleteTrackFromFavouriteTable(track: Track) {
+        repository.deleteTrackFromFavouriteTable(track)
+    }
+
+    override fun getFavouriteTracks(): Flow<Pair<List<Track>?, String?>> {
+        return repository.getAllFavouriteTracks().map { result ->
+                when(result){
+                    is Resource.Error -> Pair(null, null)
+                    is Resource.Success -> Pair(result.data, result.message)
+                }
+            }
     }
 }

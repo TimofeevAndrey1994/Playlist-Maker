@@ -12,11 +12,11 @@ class TracksLocalStorageManager(
 
     private val maxLength = 10
 
-    override fun getTrackFromLocalStorageById(trackId: Long): Track? {
+    override suspend fun getTrackFromLocalStorageById(trackId: Long): Track? {
         return getTracks().find { it.trackId == trackId }
     }
 
-    override fun saveTrackToLocalStorage(track: Track): ArrayList<Track> {
+    override suspend fun saveTrackToLocalStorage(track: Track) {
         val trackList = getTracks()
         val index = trackList.indexOf(track)
         if (index >= 0) {
@@ -31,16 +31,14 @@ class TracksLocalStorageManager(
         preferences.edit()
             .putString(SEARCH_HISTORY_KEY, json)
             .apply()
-
-        return trackList
     }
 
-    override fun getTracks(): ArrayList<Track> {
+    override suspend fun getTracks(): ArrayList<Track> {
         val json = preferences.getString(SEARCH_HISTORY_KEY, "[]")
         return gsonObject.fromJson(json, Array<Track>::class.java).toCollection(ArrayList())
     }
 
-    override fun clearLocalStorage() {
+    override suspend fun clearLocalStorage() {
         val json = gsonObject.toJson(emptyArray<Track>())
         preferences.edit()
             .putString(SEARCH_HISTORY_KEY, json)

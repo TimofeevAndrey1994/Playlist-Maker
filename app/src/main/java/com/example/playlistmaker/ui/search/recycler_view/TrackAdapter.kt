@@ -8,7 +8,7 @@ import com.example.playlistmaker.domain.model.Track
 
 open class TrackAdapter: RecyclerView.Adapter<TrackViewHolder> () {
     private var onItemClickListener: OnItemClickListener? = null
-    protected val trackList: ArrayList<Track> = ArrayList<Track>()
+    protected val trackList: ArrayList<Track> = ArrayList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
         val binding = TrackItemBinding.inflate(LayoutInflater.from(parent.context),parent, false)

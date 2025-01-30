@@ -1,24 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:theme="@style/Theme.PlaylistMaker"
-    android:background="?attr/background"
-    android:orientation="vertical">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:src="@drawable/nothing_to_show"
-        android:layout_marginTop="106dp"
-        tools:ignore="ContentDescription" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/favouriteTracks"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:listitem="@layout/track_item"
+        app:layoutManager="LinearLayoutManager"/>
 
-    <TextView
-        style="@style/info_text_style"
-        android:layout_gravity="center_horizontal"
-        android:text="@string/your_medialibrary_is_empty"
-        android:layout_marginTop="16dp"/>
+    <LinearLayout
+        android:id="@+id/emptyState"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:theme="@style/Theme.PlaylistMaker"
+        android:background="?attr/background"
+        android:orientation="vertical"
+        android:visibility="gone">
 
-</LinearLayout>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/nothing_to_show"
+            android:layout_marginTop="106dp"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/tvEmptyMessage"
+            style="@style/info_text_style"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/your_medialibrary_is_empty"
+            android:layout_marginTop="16dp"/>
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -21,6 +21,7 @@
     <string name="server_error">Ошибка сервера</string>
     <string name="error_connection">Проблемы со связью\n\nЗагрузка не удалась. Проверьте\n подключение к интернету</string>
     <string name="no_data">Ничего не нашлось</string>
+    <string name="no_data_in_media_library">Ваша медиатека пуста</string>
     <string name="clear_history">Очистить историю</string>
     <string name="you_were_finded">Вы искали</string>
     <string name="duration">Длительность</string>

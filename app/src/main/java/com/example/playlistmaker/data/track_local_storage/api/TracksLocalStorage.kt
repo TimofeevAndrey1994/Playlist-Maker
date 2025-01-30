@@ -4,11 +4,11 @@ import com.example.playlistmaker.domain.model.Track
 
 interface TracksLocalStorage {
 
-    fun getTrackFromLocalStorageById(trackId: Long): Track?
+    suspend fun getTrackFromLocalStorageById(trackId: Long): Track?
 
-    fun saveTrackToLocalStorage(track: Track): ArrayList<Track>
+    suspend fun saveTrackToLocalStorage(track: Track)
 
-    fun getTracks(): List<Track>?
+    suspend fun getTracks(): List<Track>?
 
-    fun clearLocalStorage()
+    suspend fun clearLocalStorage()
 }

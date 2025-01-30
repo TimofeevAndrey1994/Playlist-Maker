@@ -15,7 +15,11 @@
     <fragment
         android:id="@+id/rootMediaLibraryFragment"
         android:name="com.example.playlistmaker.ui.media_library.fragments.root.RootMediaLibraryFragment"
-        android:label="RootMediaLibraryFragment" />
+        android:label="RootMediaLibraryFragment" >
+        <action
+            android:id="@+id/action_rootMediaLibraryFragment_to_mediaPlayerFragment"
+            app:destination="@id/mediaPlayerFragment" />
+    </fragment>
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.example.playlistmaker.ui.settings.fragments.SettingsFragment"

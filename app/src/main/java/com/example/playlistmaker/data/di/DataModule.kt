@@ -2,6 +2,9 @@ package com.example.playlistmaker.data.di
 
 import android.content.Context
 import android.media.MediaPlayer
+import androidx.room.Room
+import com.example.playlistmaker.data.convertors.TrackConvertor
+import com.example.playlistmaker.data.db.AppDataBase
 import com.example.playlistmaker.data.impl.SettingsDataRepositoryImpl
 import com.example.playlistmaker.data.impl.SettingsDataRepositoryImpl.Companion.KEY_APP_IS_DARK_THEME
 import com.example.playlistmaker.data.impl.TrackRepositoryImpl
@@ -25,17 +28,19 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 val dataModule = module {
     single<TracksRepository> {
-        TrackRepositoryImpl(get(), get(), get())
+        TrackRepositoryImpl(get(), get(), get(), get(), get())
     }
-    single<NetworkClient>{
+    single<NetworkClient> {
         RetrofitNetworkClient(get(), get())
     }
     single<TracksLocalStorage> {
-        val preferences = androidContext().getSharedPreferences(SEARCH_HISTORY_KEY, Context.MODE_PRIVATE)
+        val preferences =
+            androidContext().getSharedPreferences(SEARCH_HISTORY_KEY, Context.MODE_PRIVATE)
         TracksLocalStorageManager(get(), preferences)
     }
     single<SettingsDataRepository> {
-        val preferences = androidContext().getSharedPreferences(KEY_APP_IS_DARK_THEME, Context.MODE_PRIVATE)
+        val preferences =
+            androidContext().getSharedPreferences(KEY_APP_IS_DARK_THEME, Context.MODE_PRIVATE)
         SettingsDataRepositoryImpl(get(), preferences)
     }
     single<ExternalNavigator> {
@@ -50,6 +55,9 @@ val dataModule = module {
     single {
         MediaPlayer()
     }
+    factory {
+        TrackConvertor()
+    }
 }
 
 val networkModule = module {
@@ -59,5 +67,11 @@ val networkModule = module {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         retrofit.create(ItunesAPI::class.java)
+    }
+}
+
+val dataBaseModule = module {
+    single {
+        Room.databaseBuilder(androidContext(), AppDataBase::class.java, "dataBase.db").build()
     }
 }
