@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/navigation_graph"
     app:startDestination="@id/rootMediaLibraryFragment">
 
@@ -19,6 +20,9 @@
         <action
             android:id="@+id/action_rootMediaLibraryFragment_to_mediaPlayerFragment"
             app:destination="@id/mediaPlayerFragment" />
+        <action
+            android:id="@+id/action_rootMediaLibraryFragment_to_detailsPlaylistFragment"
+            app:destination="@id/detailsPlaylistFragment" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
@@ -28,4 +32,9 @@
         android:id="@+id/mediaPlayerFragment"
         android:name="com.example.playlistmaker.ui.media_player.fragments.MediaPlayerFragment"
         android:label="MediaPlayerFragment" />
+    <fragment
+        android:id="@+id/detailsPlaylistFragment"
+        android:name="com.example.playlistmaker.ui.playlist_details.fragment.DetailsPlaylistFragment"
+        android:label="fragment_details"
+        tools:layout="@layout/fragment_playlist_details" />
 </navigation>
