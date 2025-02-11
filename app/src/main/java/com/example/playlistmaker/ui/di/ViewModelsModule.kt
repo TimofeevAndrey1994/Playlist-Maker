@@ -11,7 +11,7 @@ import org.koin.dsl.module
 
 val viewModelsModule = module {
     viewModel { (trackId: Long) ->
-        MediaPlayerViewModel(trackId, get(), get())
+        MediaPlayerViewModel(trackId, get(), get(), get())
     }
     viewModel {
         SearchViewModel(get())

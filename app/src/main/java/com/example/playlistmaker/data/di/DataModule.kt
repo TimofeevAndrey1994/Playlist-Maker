@@ -36,7 +36,7 @@ val dataModule = module {
         TrackRepositoryImpl(get(), get(), get(), get(), get())
     }
     single<PlaylistRepository> {
-        PlaylistRepositoryImpl(get(), get(), get(), get())
+        PlaylistRepositoryImpl(get(), get(), get(), get(), get())
     }
     single<NetworkClient> {
         RetrofitNetworkClient(get(), get())

@@ -10,12 +10,12 @@ class PlaylistConvertor {
             playlistTitle = playlist.playlistTitle,
             playListDescription = playlist.playListDescription,
             coverPath = playlist.coverPath,
-            trackList = playlist.trackList
+            trackList = ""
         )
     }
 
     fun map(playlistEntity: PlaylistEntity): Playlist {
-        val tracksCount = playlistEntity.trackList?.split(",")?.count() ?: 0
+        val tracksCount = if (playlistEntity.trackList == "") 0 else playlistEntity.trackList.split(",").count()
         return Playlist(
             playlistEntity.id,
             playlistEntity.playlistTitle,

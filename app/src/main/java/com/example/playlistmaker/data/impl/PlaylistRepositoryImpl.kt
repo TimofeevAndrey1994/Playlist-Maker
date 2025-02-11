@@ -4,18 +4,22 @@ import android.content.Context
 import androidx.core.net.toUri
 import com.example.playlistmaker.R
 import com.example.playlistmaker.data.convertors.PlaylistConvertor
+import com.example.playlistmaker.data.convertors.TrackConvertor
 import com.example.playlistmaker.data.db.AppDataBase
 import com.example.playlistmaker.data.internal_storage.InternalStorageManager
 import com.example.playlistmaker.domain.api.PlaylistRepository
 import com.example.playlistmaker.domain.model.Playlist
+import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.Resource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 
 class PlaylistRepositoryImpl(
     private val dataBase: AppDataBase,
     private val playlistConvertor: PlaylistConvertor,
+    private val trackConvertor: TrackConvertor,
     private val internalStorageManager: InternalStorageManager,
     private val context: Context
 ) : PlaylistRepository {
@@ -40,5 +44,21 @@ class PlaylistRepositoryImpl(
                     )
                 )
             }
+    }
+
+    override fun addTrackToPlaylist(track: Track, playlistId: Int): Flow<String?> = flow {
+        val playlistEntity = dataBase.getPlaylistDao().getPlaylistById(playlistId)
+        val trackEntity = trackConvertor.map(track)
+        val trackId = track.trackId
+        val trackList = if (playlistEntity.trackList == "") "" else ",${playlistEntity.trackList},"
+        if (trackList.contains(",$trackId,")) {
+            emit("Трек уже добавлен в плейлист ${playlistEntity.playlistTitle}")
+        } else {
+            dataBase.getTrackInPlaylistDao().saveTrackToPlaylist(trackConvertor.map1(trackEntity))
+            playlistEntity.trackList =
+                if (playlistEntity.trackList == "") trackId.toString() else playlistEntity.trackList + ',' + trackId.toString()
+            dataBase.getPlaylistDao().savePlaylist(playlistEntity)
+            emit("Добавлено в плейлист ${playlistEntity.playlistTitle}")
+        }
     }
 }
