@@ -5,18 +5,27 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.domain.api.MediaPlayerInteractor
+import com.example.playlistmaker.domain.api.PlaylistInteractor
 import com.example.playlistmaker.domain.api.TracksInteractor
+import com.example.playlistmaker.domain.model.Playlist
 import com.example.playlistmaker.domain.model.Track
+import com.example.playlistmaker.ui.media_library.state.ScreenState
 import com.example.playlistmaker.utils.MediaPlayerState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 class MediaPlayerViewModel(
     trackId: Long,
     private val mediaPlayerInteractor: MediaPlayerInteractor,
-    private val tracksInteractor: TracksInteractor
+    private val tracksInteractor: TracksInteractor,
+    private val playlistInteractor: PlaylistInteractor
 ) : ViewModel() {
 
     private var updateTimeJob: Job? = null
@@ -29,6 +38,29 @@ class MediaPlayerViewModel(
 
     private val isFavouriteTrack = MutableLiveData(false)
     fun observeIsFavouriteTrack(): LiveData<Boolean> = isFavouriteTrack
+
+    private val _uiState =  MutableStateFlow<ScreenState<Playlist>>(ScreenState.Loading())
+    val uiState: StateFlow<ScreenState<Playlist>> = _uiState
+
+    private val _showToast = MutableSharedFlow<String>()
+    val showToast: SharedFlow<String> = _showToast.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            _uiState.value = ScreenState.Loading()
+            playlistInteractor.getPlaylistsFromDb()
+                .collect { pair ->
+                    val playlists = pair.first
+                    val message = pair.second
+                    if (playlists?.isEmpty() == true){
+                        _uiState.value = ScreenState.Empty(message ?: "")
+                    }
+                    else {
+                        _uiState.value = ScreenState.Content(playlists!!)
+                    }
+                }
+        }
+    }
 
     private val playConsumer = MediaPlayerInteractor.PlayConsumer {
         updateTimeJob?.cancel()
@@ -102,5 +134,15 @@ class MediaPlayerViewModel(
     override fun onCleared() {
         super.onCleared()
         mediaPlayerInteractor.clear()
+    }
+
+    fun addTrackToPlaylist(playListId: Int) {
+        viewModelScope.launch {
+            playlistInteractor.addTrackToPlaylist(currentTrack.value!!, playListId).collect{ value ->
+                if (value?.isNotEmpty() == true) {
+                    _showToast.emit(value)
+                }
+            }
+        }
     }
 }

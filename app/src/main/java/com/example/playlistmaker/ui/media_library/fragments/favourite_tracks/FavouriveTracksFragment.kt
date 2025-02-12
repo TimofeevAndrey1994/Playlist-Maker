@@ -13,7 +13,7 @@ import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.FragmentFavouriteTracksBinding
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.base.BaseFragmentBinding
-import com.example.playlistmaker.ui.media_library.state.FavouriteTracksScreenState
+import com.example.playlistmaker.ui.media_library.state.ScreenState
 import com.example.playlistmaker.ui.media_library.view_model.FavouriteTracksViewModel
 import com.example.playlistmaker.ui.media_player.fragments.MediaPlayerFragment
 import com.example.playlistmaker.ui.search.recycler_view.TrackAdapter
@@ -46,22 +46,22 @@ class FavouriveTracksFragment : BaseFragmentBinding<FragmentFavouriteTracksBindi
         }
     }
 
-    private fun renderState(state: FavouriteTracksScreenState?) {
+    private fun renderState(state: ScreenState<Track>?) {
         with(binding) {
             when (state) {
-                is FavouriteTracksScreenState.Content -> {
+                is ScreenState.Content -> {
                     favouriteTracks.isVisible = true
                     emptyState.isVisible = false
-                    trackAdapter.addAll(state.trackList)
+                    trackAdapter.addAll(state.list)
                 }
 
-                is FavouriteTracksScreenState.Empty -> {
+                is ScreenState.Empty -> {
                     favouriteTracks.isVisible = false
                     tvEmptyMessage.text = state.message
                     emptyState.isVisible = true
                 }
 
-                FavouriteTracksScreenState.Loading -> {
+                is ScreenState.Loading -> {
                     favouriteTracks.isVisible = false
                     emptyState.isVisible = false
                 }

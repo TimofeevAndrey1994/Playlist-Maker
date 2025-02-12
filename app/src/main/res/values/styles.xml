@@ -77,5 +77,17 @@
         <item name="fontFamily">@font/ys_display_regular</item>
     </style>
 
+    <style name="edit_text_create_playlist">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">54dp</item>
+        <item name="android:paddingStart">@dimen/horizontal_default_padding</item>
+        <item name="android:textColorHint">?attr/colorOnSecondary</item>
+        <item name="android:inputType">text</item>
+        <item name="android:fontFamily">@font/ys_display_regular</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/colorOnSecondary</item>
+        <item name="android:background">@drawable/rounded_rectangle</item>
+    </style>
+
     <style name="BottomNavigationIndicatorStyle"/>
 </resources>
