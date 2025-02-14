@@ -38,7 +38,7 @@ class TrackConvertor {
         )
     }
 
-    fun map1(track: TrackEntity): TrackInPlaylistEntity{
+    fun mapToTrackInPlaylistEntity(track: TrackEntity): TrackInPlaylistEntity{
         return TrackInPlaylistEntity(
             track.trackId,
             track.trackName,

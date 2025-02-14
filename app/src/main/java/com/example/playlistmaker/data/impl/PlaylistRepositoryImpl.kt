@@ -52,13 +52,13 @@ class PlaylistRepositoryImpl(
         val trackId = track.trackId
         val trackList = if (playlistEntity.trackList == "") "" else ",${playlistEntity.trackList},"
         if (trackList.contains(",$trackId,")) {
-            emit("Трек уже добавлен в плейлист ${playlistEntity.playlistTitle}")
+            emit(context.getString(R.string.track_already_added_to_playlist).format(playlistEntity.playlistTitle))
         } else {
-            dataBase.getTrackInPlaylistDao().saveTrackToPlaylist(trackConvertor.map1(trackEntity))
+            dataBase.getTrackInPlaylistDao().saveTrackToPlaylist(trackConvertor.mapToTrackInPlaylistEntity(trackEntity))
             playlistEntity.trackList =
                 if (playlistEntity.trackList == "") trackId.toString() else playlistEntity.trackList + ',' + trackId.toString()
             dataBase.getPlaylistDao().savePlaylist(playlistEntity)
-            emit("Добавлено в плейлист ${playlistEntity.playlistTitle}")
+            emit(context.getString(R.string.added_to_playlist).format(playlistEntity.playlistTitle))
         }
     }
 }
