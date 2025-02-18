@@ -17,6 +17,7 @@ import com.example.playlistmaker.ui.base.BaseFragmentBinding
 import com.example.playlistmaker.ui.media_library.state.ScreenState
 import com.example.playlistmaker.ui.media_library.view_model.PlaylistsViewModel
 import com.example.playlistmaker.ui.media_library.recycler_view.PlaylistAdapter
+import com.example.playlistmaker.ui.playlist_details.fragment.DetailsPlaylistFragment
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -29,14 +30,20 @@ class PlaylistsFragment : BaseFragmentBinding<FragmentPlaylistsBinding>() {
         inflater: LayoutInflater,
         container: ViewGroup?
     ): FragmentPlaylistsBinding {
+        playlistAdapter.setOnClickListener { playlist ->
+            findNavController().navigate(
+                R.id.action_rootMediaLibraryFragment_to_detailsPlaylistFragment,
+                DetailsPlaylistFragment.createArgs(playlist.id)
+            )
+        }
         return FragmentPlaylistsBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        with(binding){
-            btnCreateNewPlaylist.setOnClickListener{
+        with(binding) {
+            btnCreateNewPlaylist.setOnClickListener {
                 findNavController().navigate(R.id.action_rootMediaLibraryFragment_to_detailsPlaylistFragment)
             }
             rvPlaylists.layoutManager = GridLayoutManager(requireContext(), 2)
@@ -53,21 +60,23 @@ class PlaylistsFragment : BaseFragmentBinding<FragmentPlaylistsBinding>() {
 
     }
 
-    private fun render(state: ScreenState<Playlist>){
+    private fun render(state: ScreenState<Playlist>) {
         with(binding) {
-            when(state){
+            when (state) {
                 is ScreenState.Content -> {
                     ivNoData.isVisible = false
                     tvNoData.isVisible = false
                     rvPlaylists.isVisible = true
                     playlistAdapter.addAll(state.list)
                 }
+
                 is ScreenState.Empty -> {
                     ivNoData.isVisible = true
                     tvNoData.isVisible = true
                     rvPlaylists.isVisible = false
                     tvNoData.text = state.message
                 }
+
                 is ScreenState.Loading -> {
                     ivNoData.isVisible = false
                     tvNoData.isVisible = false

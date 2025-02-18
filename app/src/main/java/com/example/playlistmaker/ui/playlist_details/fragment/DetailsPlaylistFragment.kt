@@ -1,123 +1,67 @@
 package com.example.playlistmaker.ui.playlist_details.fragment
 
-import android.net.Uri
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
-import android.widget.Toast
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
+import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.FragmentPlaylistDetailsBinding
 import com.example.playlistmaker.ui.base.BaseFragmentBinding
 import com.example.playlistmaker.ui.playlist_details.view_model.DetailsPlaylistViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.launch
+import com.example.playlistmaker.utils.getWordMinuteInCorrectView
+import com.example.playlistmaker.utils.getWordTrackInCorrectView
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 
-class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBinding>() {
+class DetailsPlaylistFragment: BaseFragmentBinding<FragmentPlaylistDetailsBinding>() {
 
-    private val detailsPlaylistViewModel: DetailsPlaylistViewModel by viewModel()
-    private var textWatcher: TextWatcher? = null
-
-    private var selectedUri: Uri? = null
-
-    private val activityResultLauncher =
-        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            selectedUri = uri
-            Glide.with(requireContext())
-                .load(uri)
-                .transform(CenterCrop(), RoundedCorners(16))
-                .into(binding.imageCover)
-        }
+    private val detailsPlaylistViewModel: DetailsPlaylistViewModel by viewModel {
+        val playlistId = requireArguments().getInt(PLAYLIST_ID, -1)
+        parametersOf(playlistId)
+    }
 
     override fun onCreateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
     ): FragmentPlaylistDetailsBinding {
-        return FragmentPlaylistDetailsBinding.inflate(inflater, container, false)
+       return FragmentPlaylistDetailsBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        textWatcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                binding.btnCreatePlaylist.isEnabled = (count > 0)
-            }
+        with(binding){
+            tvPlaylistDescription.isVisible = false
+            detailsPlaylistViewModel.currentPlayList().observe(viewLifecycleOwner){ playlist ->
+                Glide.with(root)
+                    .load(playlist.coverPath)
+                    .placeholder(R.drawable.empty_playlist_cover)
+                    .transform(CenterCrop())
+                    .into(imageCover)
 
-            override fun afterTextChanged(s: Editable?) {}
-        }
+                tvPlaylistTitle.text = playlist.playlistTitle
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                detailsPlaylistViewModel.showToast.collect { value ->
-                    Toast.makeText(requireContext(), value, Toast.LENGTH_SHORT).show()
+                if (playlist.playListDescription?.isNotEmpty() == true){
+                    tvPlaylistDescription.text = playlist.playListDescription
+                    tvPlaylistDescription.isVisible = true
                 }
-            }
-        }
 
-        with(binding) {
-            btnCreatePlaylist.isEnabled = (etPlaylistName.text.isNotEmpty())
+                val tracksCountText = "${playlist.tracksCount} ${playlist.tracksCount.getWordTrackInCorrectView()}"
+                tvPlaylistTracksCount.text = tracksCountText
 
-            etPlaylistName.addTextChangedListener(textWatcher)
-
-            btnCreatePlaylist.setOnClickListener {
-                detailsPlaylistViewModel.createPlaylist(
-                    binding.etPlaylistName.text.toString(),
-                    etPlaylistAbout.text.toString(),
-                    selectedUri
-                )
-                findNavController().navigateUp()
-            }
-
-            imageCover.setOnClickListener {
-                activityResultLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }
-
-            arrowBackCreatePlaylist.setOnClickListener {
-                if ((selectedUri != null) or (etPlaylistName.text.isNotEmpty()) or (etPlaylistAbout.text.isNotEmpty())) {
-                    MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(requireContext().getString(R.string.wanna_to_finish_creating))
-                        .setMessage(requireContext().getString(R.string.all_unsaved_data_will_be_lose))
-                        .setNeutralButton(requireContext().getString(R.string.cancel)) { _, _ ->
-
-                        }
-                        .setPositiveButton(requireContext().getString(R.string.done)) { _, _ ->
-                            findNavController().navigateUp()
-                        }
-                        .show()
-                } else {
-                    findNavController().navigateUp()
-                }
+                val tracksDurationText = "${playlist.trackDurationInMin} ${playlist.tracksCount.getWordMinuteInCorrectView()}"
+                tvPlaylistDurationInMin.text = tracksDurationText
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
-    }
+    companion object {
+        private const val PLAYLIST_ID = "PLAYLIST_ID"
 
-    override fun onPause() {
-        super.onPause()
-        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        textWatcher = null
+        fun createArgs(playlistId: Int) = bundleOf(PLAYLIST_ID to playlistId)
     }
 }

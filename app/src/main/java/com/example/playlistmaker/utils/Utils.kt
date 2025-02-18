@@ -20,3 +20,13 @@ fun Int.getWordTrackInCorrectView(): String {
         else -> ""
     }
 }
+
+fun Int.getWordMinuteInCorrectView(): String {
+    val lastDigit = this%10
+    return when(lastDigit){
+        0,5,6,7,8,9 -> "минут"
+        1 -> "минута"
+        2,3,4 -> "минуты"
+        else -> ""
+    }
+}

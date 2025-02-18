@@ -34,7 +34,7 @@ class PlaylistRepositoryImpl(
     }
 
     override fun getAllPlaylists(): Flow<Resource<List<Playlist>>> {
-        return dataBase.getPlaylistDao().getAllPlaylists()
+        return dataBase.getPlaylistDao().getAllPlaylistsFlow()
             .map { it.map { playlist -> playlistConvertor.map(playlist) } }
             .transform { playlists ->
                 emit(
@@ -52,13 +52,64 @@ class PlaylistRepositoryImpl(
         val trackId = track.trackId
         val trackList = if (playlistEntity.trackList == "") "" else ",${playlistEntity.trackList},"
         if (trackList.contains(",$trackId,")) {
-            emit(context.getString(R.string.track_already_added_to_playlist).format(playlistEntity.playlistTitle))
+            emit(
+                context.getString(R.string.track_already_added_to_playlist)
+                    .format(playlistEntity.playlistTitle)
+            )
         } else {
-            dataBase.getTrackInPlaylistDao().saveTrackToPlaylist(trackConvertor.mapToTrackInPlaylistEntity(trackEntity))
+            dataBase.getTrackInPlaylistDao()
+                .saveTrackToPlaylist(trackConvertor.mapToTrackInPlaylistEntity(trackEntity))
             playlistEntity.trackList =
                 if (playlistEntity.trackList == "") trackId.toString() else playlistEntity.trackList + ',' + trackId.toString()
             dataBase.getPlaylistDao().savePlaylist(playlistEntity)
             emit(context.getString(R.string.added_to_playlist).format(playlistEntity.playlistTitle))
         }
+    }
+
+    override suspend fun deleteTrackFromPlaylist(trackId: Int, playlistId: Int) {
+        val playlistEntity = dataBase.getPlaylistDao().getPlaylistById(playlistId)
+        val trackList = "," + playlistEntity.trackList + ","
+
+        trackList.replace(",$trackId,", ",")
+        trackList.removeSurrounding(",", ",")
+
+        var isTrackExist = false
+        //--- Если трека нет ни в одном плейлисте, то удаляем его из таблицы в бд
+        val playlists = dataBase.getPlaylistDao().getAllPlaylists()
+        for (playlist in playlists) {
+            if (playlist.id != playlistId) {
+                val trackListInEachPlaylist = "," + playlist.trackList + ","
+                isTrackExist = trackListInEachPlaylist.contains(",$trackId,")
+            }
+            if (isTrackExist) {
+                break
+            }
+        }
+        if (!isTrackExist) {
+            val trackInPlaylistEntity =
+                dataBase.getTrackInPlaylistDao().getTrackById(trackId.toLong())
+            dataBase.getTrackInPlaylistDao().deleteTrack(trackInPlaylistEntity)
+        }
+    }
+
+    override fun getPlaylistFromDb(playlistId: Int): Flow<Playlist> = flow {
+        val playlist = dataBase.getPlaylistDao().getPlaylistById(playlistId)
+        emit(playlistConvertor.map(playlist))
+    }
+
+    override fun getAllTracksFromPlaylist(playlistId: Int): Flow<List<Track>> = flow {
+        val trackList = dataBase.getPlaylistDao().getPlaylistById(playlistId).trackList
+        if (trackList == "") {
+            emit(emptyList())
+        }
+
+        val trackArrayList: ArrayList<Track> = ArrayList()
+
+        trackList.split(",").forEach { trackId ->
+            val track = dataBase.getTrackInPlaylistDao().getTrackById(trackId.toLong())
+            trackArrayList.add(trackConvertor.map(track))
+        }
+
+        emit(trackArrayList)
     }
 }
