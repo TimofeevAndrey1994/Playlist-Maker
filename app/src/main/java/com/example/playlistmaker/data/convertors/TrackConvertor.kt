@@ -53,4 +53,18 @@ class TrackConvertor {
         )
     }
 
+    fun mapToTrack(track: TrackInPlaylistEntity): Track{
+        return Track(
+            track.trackId,
+            track.trackName,
+            track.artistName,
+            track.trackTime,
+            track.previewUrl,
+            track.artworkUrl100,
+            track.country,
+            track.releaseDate,
+            track.collectionName,
+            track.primaryGenreName
+        )
+    }
 }

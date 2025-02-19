@@ -6,15 +6,18 @@ import com.example.playlistmaker.R
 import com.example.playlistmaker.data.convertors.PlaylistConvertor
 import com.example.playlistmaker.data.convertors.TrackConvertor
 import com.example.playlistmaker.data.db.AppDataBase
+import com.example.playlistmaker.data.db.entities.TrackInPlaylistEntity
 import com.example.playlistmaker.data.internal_storage.InternalStorageManager
 import com.example.playlistmaker.domain.api.PlaylistRepository
 import com.example.playlistmaker.domain.model.Playlist
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.withContext
 
 class PlaylistRepositoryImpl(
     private val dataBase: AppDataBase,
@@ -97,19 +100,20 @@ class PlaylistRepositoryImpl(
         emit(playlistConvertor.map(playlist))
     }
 
-    override fun getAllTracksFromPlaylist(playlistId: Int): Flow<List<Track>> = flow {
-        val trackList = dataBase.getPlaylistDao().getPlaylistById(playlistId).trackList
-        if (trackList == "") {
-            emit(emptyList())
-        }
-
-        val trackArrayList: ArrayList<Track> = ArrayList()
-
-        trackList.split(",").forEach { trackId ->
-            val track = dataBase.getTrackInPlaylistDao().getTrackById(trackId.toLong())
-            trackArrayList.add(trackConvertor.map(track))
-        }
-
-        emit(trackArrayList)
+    override fun getAllTracksFromPlaylist(playlistId: Int): Flow<List<Track>>{
+        return dataBase.getPlaylistDao().getAllTracksFromPlaylist(playlistId)
+            .transform { trackList ->
+                val trackArrayList: ArrayList<Track> = ArrayList()
+                trackList.split(",").forEach { trackId ->
+                    var trackInPlaylistEntity: TrackInPlaylistEntity?
+                    withContext(Dispatchers.IO){
+                        trackInPlaylistEntity = dataBase.getTrackInPlaylistDao().getTrackById(trackId.toLong())
+                    }
+                    if (trackInPlaylistEntity != null) {
+                        trackArrayList.add(trackConvertor.mapToTrack(trackInPlaylistEntity!!))
+                    }
+                }
+                emit(trackArrayList)
+            }
     }
 }
