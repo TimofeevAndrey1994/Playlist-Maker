@@ -106,7 +106,7 @@ class MediaPlayerFragment : BaseFragmentBinding<FragmentMediaPlayerBinding>() {
             rvLinelarPlaylists.adapter = linelarPlaylistAdapter
 
             btnCreateNewPlaylist.setOnClickListener{
-                findNavController().navigate(R.id.action_mediaPlayerFragment_to_detailsPlaylistFragment)
+                findNavController().navigate(R.id.action_mediaPlayerFragment_to_editPlaylistFragment)
             }
 
             mediaPlayerViewModel.observeIsFavouriteTrack().observe(viewLifecycleOwner) { value ->

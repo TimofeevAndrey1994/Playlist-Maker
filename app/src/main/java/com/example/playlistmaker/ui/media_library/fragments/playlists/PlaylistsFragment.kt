@@ -44,7 +44,7 @@ class PlaylistsFragment : BaseFragmentBinding<FragmentPlaylistsBinding>() {
 
         with(binding) {
             btnCreateNewPlaylist.setOnClickListener {
-                findNavController().navigate(R.id.action_rootMediaLibraryFragment_to_detailsPlaylistFragment)
+                findNavController().navigate(R.id.action_rootMediaLibraryFragment_to_editPlaylistFragment)
             }
             rvPlaylists.layoutManager = GridLayoutManager(requireContext(), 2)
             rvPlaylists.adapter = playlistAdapter

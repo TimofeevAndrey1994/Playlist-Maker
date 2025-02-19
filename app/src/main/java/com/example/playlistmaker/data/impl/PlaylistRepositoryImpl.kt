@@ -6,15 +6,19 @@ import com.example.playlistmaker.R
 import com.example.playlistmaker.data.convertors.PlaylistConvertor
 import com.example.playlistmaker.data.convertors.TrackConvertor
 import com.example.playlistmaker.data.db.AppDataBase
+import com.example.playlistmaker.data.db.entities.PlaylistEntity
+import com.example.playlistmaker.data.db.entities.TrackInPlaylistEntity
 import com.example.playlistmaker.data.internal_storage.InternalStorageManager
 import com.example.playlistmaker.domain.api.PlaylistRepository
 import com.example.playlistmaker.domain.model.Playlist
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.withContext
 
 class PlaylistRepositoryImpl(
     private val dataBase: AppDataBase,
@@ -66,12 +70,24 @@ class PlaylistRepositoryImpl(
         }
     }
 
-    override suspend fun deleteTrackFromPlaylist(trackId: Int, playlistId: Int) {
-        val playlistEntity = dataBase.getPlaylistDao().getPlaylistById(playlistId)
-        val trackList = "," + playlistEntity.trackList + ","
+    override suspend fun deleteTrackFromPlaylist(trackId: Long, playlistId: Int) {
+        val playlistEntity: PlaylistEntity?
+        withContext(Dispatchers.IO) {
+            playlistEntity = dataBase.getPlaylistDao().getPlaylistById(playlistId)
+        }
 
-        trackList.replace(",$trackId,", ",")
-        trackList.removeSurrounding(",", ",")
+        var trackList =
+            if (playlistEntity?.trackList == null) "" else "," + playlistEntity.trackList + ","
+
+        trackList = trackList.replace(",$trackId,", ",")
+        trackList = trackList.removeSurrounding(",", ",")
+        if (trackList == ",") trackList = ""
+
+        playlistEntity?.trackList = trackList
+
+        withContext(Dispatchers.IO){
+            dataBase.getPlaylistDao().savePlaylist(playlistEntity!!)
+        }
 
         var isTrackExist = false
         //--- Если трека нет ни в одном плейлисте, то удаляем его из таблицы в бд
@@ -85,10 +101,12 @@ class PlaylistRepositoryImpl(
                 break
             }
         }
-        if (!isTrackExist) {
-            val trackInPlaylistEntity =
-                dataBase.getTrackInPlaylistDao().getTrackById(trackId.toLong())
-            dataBase.getTrackInPlaylistDao().deleteTrack(trackInPlaylistEntity)
+        withContext(Dispatchers.IO) {
+            if (!isTrackExist) {
+                val trackInPlaylistEntity =
+                    dataBase.getTrackInPlaylistDao().getTrackById(trackId)
+                dataBase.getTrackInPlaylistDao().deleteTrack(trackInPlaylistEntity)
+            }
         }
     }
 
@@ -97,19 +115,25 @@ class PlaylistRepositoryImpl(
         emit(playlistConvertor.map(playlist))
     }
 
-    override fun getAllTracksFromPlaylist(playlistId: Int): Flow<List<Track>> = flow {
-        val trackList = dataBase.getPlaylistDao().getPlaylistById(playlistId).trackList
-        if (trackList == "") {
-            emit(emptyList())
-        }
-
-        val trackArrayList: ArrayList<Track> = ArrayList()
-
-        trackList.split(",").forEach { trackId ->
-            val track = dataBase.getTrackInPlaylistDao().getTrackById(trackId.toLong())
-            trackArrayList.add(trackConvertor.map(track))
-        }
-
-        emit(trackArrayList)
+    override fun getAllTracksFromPlaylist(playlistId: Int): Flow<List<Track>> {
+        return dataBase.getPlaylistDao().getAllTracksFromPlaylist(playlistId)
+            .transform { trackList ->
+                if (trackList != "") {
+                    val trackArrayList: ArrayList<Track> = ArrayList()
+                    trackList.split(",").forEach { trackId ->
+                        var trackInPlaylistEntity: TrackInPlaylistEntity?
+                        withContext(Dispatchers.IO) {
+                            trackInPlaylistEntity =
+                                dataBase.getTrackInPlaylistDao().getTrackById(trackId.toLong())
+                        }
+                        if (trackInPlaylistEntity != null) {
+                            trackArrayList.add(trackConvertor.mapToTrack(trackInPlaylistEntity!!))
+                        }
+                    }
+                    emit(trackArrayList)
+                } else {
+                    emit(emptyList())
+                }
+            }
     }
 }
