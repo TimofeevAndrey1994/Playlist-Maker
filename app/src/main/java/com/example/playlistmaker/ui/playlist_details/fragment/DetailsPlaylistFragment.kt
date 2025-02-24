@@ -12,6 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.FragmentPlaylistDetailsBinding
 import com.example.playlistmaker.ui.base.BaseFragmentBinding
@@ -20,6 +21,8 @@ import com.example.playlistmaker.ui.playlist_details.view_model.DetailsPlaylistV
 import com.example.playlistmaker.ui.search.recycler_view.TrackAdapter
 import com.example.playlistmaker.utils.getWordMinuteInCorrectView
 import com.example.playlistmaker.utils.getWordTrackInCorrectView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -63,6 +66,28 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
                 .show()
         }
 
+        val bottomSheetBehaviorMenu = BottomSheetBehavior.from(binding.playlistMenuBottomSheet).apply {
+            state = BottomSheetBehavior.STATE_HIDDEN
+        }
+
+        bottomSheetBehaviorMenu.addBottomSheetCallback(object : BottomSheetCallback(){
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                when (newState) {
+                    BottomSheetBehavior.STATE_HIDDEN -> {
+                        binding.overlay.visibility = View.GONE
+                        binding.playlistsBottomSheet.isVisible = true
+                    }
+
+                    else -> {
+                        binding.overlay.visibility = View.VISIBLE
+                        binding.playlistsBottomSheet.isVisible = false
+                    }
+
+                }
+            }
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+        })
+
         with(binding) {
             tvPlaylistDescription.isVisible = false
             detailsPlaylistViewModel.currentPlayList().observe(viewLifecycleOwner) { playlist ->
@@ -80,9 +105,34 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
                 }
 
                 rvTrackList.adapter = trackAdapter
+
+                with(linelarItemPlaylist) {
+                    Glide.with(requireContext())
+                        .load(playlist.coverPath)
+                        .placeholder(R.drawable.ic_placeholder)
+                        .transform(CenterCrop(), RoundedCorners(2))
+                        .into(playlistCover)
+                    playlistTitle.text = playlist.playlistTitle
+                    val tracksCountText = "${playlist.tracksCount} ${playlist.tracksCount.getWordTrackInCorrectView()}"
+                    tracksCount.text   = tracksCountText
+                }
             }
             arrowBackFromDetailsPlaylist.setOnClickListener {
                 findNavController().navigateUp()
+            }
+            ivContextMenu.setOnClickListener {
+                bottomSheetBehaviorMenu.state = BottomSheetBehavior.STATE_COLLAPSED
+            }
+            deletePlaylist.setOnClickListener{
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Хотите удалить плейлист?")
+                    .setNegativeButton("Нет") { _,_ ->
+
+                    }
+                    .setPositiveButton("Да"){ _,_ ->
+                        detailsPlaylistViewModel.deletePlaylist()
+                    }
+                    .show()
             }
         }
 
@@ -91,19 +141,25 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
                 detailsPlaylistViewModel.trackListInPlaylist.collect { pair ->
                     val trackList = pair.first
                     val duration = pair.second
-                    trackAdapter.addAll(trackList)
+                    trackAdapter.addAll(trackList ?: emptyList())
                     binding.tvPlaylistDurationInMin.text =
                         String.format("%s %s", duration, duration.getWordMinuteInCorrectView())
-                    binding.tvPlaylistTracksCount.text = String.format(
-                        "%s %s",
-                        trackList.count(),
-                        trackList.count().getWordTrackInCorrectView()
-                    )
+                    val tracksCountText = "${trackList?.count()} ${trackList?.count()?.getWordTrackInCorrectView()}"
+                    binding.tvPlaylistTracksCount.text = tracksCountText
+                    binding.linelarItemPlaylist.tracksCount.text   = tracksCountText
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                detailsPlaylistViewModel.playlistDeleted.collect{
+                    if (it) {
+                        findNavController().navigateUp()
+                    }
                 }
             }
         }
     }
-
 
     companion object {
         private const val PLAYLIST_ID = "PLAYLIST_ID"

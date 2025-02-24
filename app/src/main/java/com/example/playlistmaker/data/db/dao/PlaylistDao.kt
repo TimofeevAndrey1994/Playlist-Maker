@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.Flow
 interface PlaylistDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun savePlaylist(playlistEntity: PlaylistEntity)
-    @Delete
-    suspend fun deletePlaylist(playlistEntity: PlaylistEntity)
+    @Query("DELETE FROM playlist_table WHERE id=:playlistId")
+    suspend fun deletePlaylistById(playlistId: Int)
     @Query("SELECT * FROM PLAYLIST_TABLE")
     fun getAllPlaylistsFlow(): Flow<List<PlaylistEntity>>
     @Query("SELECT * FROM PLAYLIST_TABLE")
@@ -21,5 +21,5 @@ interface PlaylistDao {
     @Query("SELECT * FROM PLAYLIST_TABLE WHERE id=:playlistId")
     suspend fun getPlaylistById(playlistId: Int): PlaylistEntity
     @Query("SELECT trackList FROM PLAYLIST_TABLE WHERE id=:playlistId")
-    fun getAllTracksFromPlaylist(playlistId: Int): Flow<String>
+    fun getAllTracksFromPlaylist(playlistId: Int): Flow<String?>
 }

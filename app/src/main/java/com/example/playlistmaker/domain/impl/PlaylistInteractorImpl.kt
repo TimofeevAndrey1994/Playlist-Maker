@@ -39,11 +39,11 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository)
         return playlistRepository.getPlaylistFromDb(playlistId)
     }
 
-    override fun getAllTracksFromPlaylist(playlistId: Int): Flow<Pair<List<Track>, Int>> {
+    override fun getAllTracksFromPlaylist(playlistId: Int): Flow<Pair<List<Track>?, Int>> {
         return playlistRepository.getAllTracksFromPlaylist(playlistId)
             .transform { trackList ->
                 var trackDuration = 0L
-                trackList.forEach { track ->
+                trackList?.forEach { track ->
                     val trackTimeInMil = track.trackTime.convertToMilliseconds()
                     if (trackTimeInMil > 0) {
                         trackDuration += trackTimeInMil
@@ -56,4 +56,9 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository)
     override suspend fun deleteTrackFromPlaylist(trackId: Long, playlistId: Int) {
         playlistRepository.deleteTrackFromPlaylist(trackId, playlistId)
     }
+
+    override suspend fun deletePlaylist(playlist: Playlist) {
+        playlistRepository.deletePlaylist(playlist)
+    }
+
 }

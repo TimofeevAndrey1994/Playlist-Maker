@@ -23,6 +23,7 @@ import com.example.playlistmaker.ui.media_player.recycler_view.LinelarPlaylistAd
 import com.example.playlistmaker.ui.media_player.view_model.MediaPlayerViewModel
 import com.example.playlistmaker.utils.MediaPlayerState
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
@@ -86,6 +87,23 @@ class MediaPlayerFragment : BaseFragmentBinding<FragmentMediaPlayerBinding>() {
             state = BottomSheetBehavior.STATE_HIDDEN
         }
 
+        bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                when (newState) {
+                    BottomSheetBehavior.STATE_HIDDEN -> {
+                        binding.overlay.visibility = View.GONE
+                    }
+
+                    else -> {
+                        binding.overlay.visibility = View.VISIBLE
+                    }
+
+                }
+            }
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+        })
+
         with(binding) {
             ivPlay.setOnClickListener {
                 mediaPlayerViewModel.nextState()
@@ -105,7 +123,7 @@ class MediaPlayerFragment : BaseFragmentBinding<FragmentMediaPlayerBinding>() {
 
             rvLinelarPlaylists.adapter = linelarPlaylistAdapter
 
-            btnCreateNewPlaylist.setOnClickListener{
+            btnCreateNewPlaylist.setOnClickListener {
                 findNavController().navigate(R.id.action_mediaPlayerFragment_to_editPlaylistFragment)
             }
 
@@ -143,6 +161,7 @@ class MediaPlayerFragment : BaseFragmentBinding<FragmentMediaPlayerBinding>() {
             is ScreenState.Content -> {
                 linelarPlaylistAdapter.addAll(state.list)
             }
+
             is ScreenState.Empty -> {}
             is ScreenState.Loading -> {}
         }
