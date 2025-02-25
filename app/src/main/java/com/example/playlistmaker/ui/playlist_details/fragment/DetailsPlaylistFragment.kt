@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -57,20 +58,21 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
         trackAdapter.setOnItemLongClickListener { track ->
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Вы уверены, что хотите удалить трек из плейлиста?")
-                .setPositiveButton("Удалить"){ _,_ ->
+                .setPositiveButton("Удалить") { _, _ ->
                     detailsPlaylistViewModel.deleteTrackFromPlaylist(track)
                 }
-                .setNeutralButton("Отмена") { _,_ ->
+                .setNeutralButton("Отмена") { _, _ ->
 
                 }
                 .show()
         }
 
-        val bottomSheetBehaviorMenu = BottomSheetBehavior.from(binding.playlistMenuBottomSheet).apply {
-            state = BottomSheetBehavior.STATE_HIDDEN
-        }
+        val bottomSheetBehaviorMenu =
+            BottomSheetBehavior.from(binding.playlistMenuBottomSheet).apply {
+                state = BottomSheetBehavior.STATE_HIDDEN
+            }
 
-        bottomSheetBehaviorMenu.addBottomSheetCallback(object : BottomSheetCallback(){
+        bottomSheetBehaviorMenu.addBottomSheetCallback(object : BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 when (newState) {
                     BottomSheetBehavior.STATE_HIDDEN -> {
@@ -85,38 +87,12 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
 
                 }
             }
+
             override fun onSlide(bottomSheet: View, slideOffset: Float) {}
         })
 
         with(binding) {
             tvPlaylistDescription.isVisible = false
-            detailsPlaylistViewModel.currentPlayList().observe(viewLifecycleOwner) { playlist ->
-                Glide.with(root)
-                    .load(playlist.coverPath)
-                    .placeholder(R.drawable.empty_playlist_cover)
-                    .transform(CenterCrop())
-                    .into(imageCover)
-
-                tvPlaylistTitle.text = playlist.playlistTitle
-
-                if (playlist.playListDescription?.isNotEmpty() == true) {
-                    tvPlaylistDescription.text = playlist.playListDescription
-                    tvPlaylistDescription.isVisible = true
-                }
-
-                rvTrackList.adapter = trackAdapter
-
-                with(linelarItemPlaylist) {
-                    Glide.with(requireContext())
-                        .load(playlist.coverPath)
-                        .placeholder(R.drawable.ic_placeholder)
-                        .transform(CenterCrop(), RoundedCorners(2))
-                        .into(playlistCover)
-                    playlistTitle.text = playlist.playlistTitle
-                    val tracksCountText = "${playlist.tracksCount} ${playlist.tracksCount.getWordTrackInCorrectView()}"
-                    tracksCount.text   = tracksCountText
-                }
-            }
             arrowBackFromDetailsPlaylist.setOnClickListener {
                 findNavController().navigateUp()
             }
@@ -128,16 +104,23 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
                 detailsPlaylistViewModel.sharePlaylist()
             }
 
-            deletePlaylist.setOnClickListener{
+            deletePlaylist.setOnClickListener {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Хотите удалить плейлист?")
-                    .setNegativeButton("Нет") { _,_ ->
+                    .setNegativeButton("Нет") { _, _ ->
 
                     }
-                    .setPositiveButton("Да"){ _,_ ->
+                    .setPositiveButton("Да") { _, _ ->
                         detailsPlaylistViewModel.deletePlaylist()
                     }
                     .show()
+            }
+
+            editPlaylistInformation.setOnClickListener {
+                findNavController().navigate(
+                    R.id.action_detailsPlaylistFragment_to_editPlaylistFragment,
+                    EditPlaylistFragment.createArgs(requireArguments().getInt(PLAYLIST_ID))
+                )
             }
         }
 
@@ -149,18 +132,63 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
                     trackAdapter.addAll(trackList ?: emptyList())
                     binding.tvPlaylistDurationInMin.text =
                         String.format("%s %s", duration, duration.getWordMinuteInCorrectView())
-                    val tracksCountText = "${trackList?.count()} ${trackList?.count()?.getWordTrackInCorrectView()}"
+                    val tracksCountText =
+                        "${trackList?.count()} ${trackList?.count()?.getWordTrackInCorrectView()}"
                     binding.tvPlaylistTracksCount.text = tracksCountText
-                    binding.linelarItemPlaylist.tracksCount.text   = tracksCountText
+                    binding.linelarItemPlaylist.tracksCount.text = tracksCountText
                 }
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                detailsPlaylistViewModel.playlistDeleted.collect{
+                detailsPlaylistViewModel.playlistDeleted.collect {
                     if (it) {
                         findNavController().navigateUp()
                     }
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                detailsPlaylistViewModel.currentPlayList.collect { playlist ->
+                    with(binding){
+                        Glide.with(root)
+                            .load(playlist?.coverPath)
+                            .placeholder(R.drawable.empty_playlist_cover)
+                            .transform(CenterCrop())
+                            .into(imageCover)
+
+                        tvPlaylistTitle.text = playlist?.playlistTitle
+
+                        if (playlist?.playListDescription?.isNotEmpty() == true) {
+                            tvPlaylistDescription.text = playlist.playListDescription
+                            tvPlaylistDescription.isVisible = true
+                        }
+                        else {
+                            tvPlaylistDescription.text = ""
+                        }
+
+                        rvTrackList.adapter = trackAdapter
+
+                        with(linelarItemPlaylist) {
+                            Glide.with(requireContext())
+                                .load(playlist?.coverPath)
+                                .placeholder(R.drawable.ic_placeholder)
+                                .transform(CenterCrop(), RoundedCorners(2))
+                                .into(playlistCover)
+                            playlistTitle.text = playlist?.playlistTitle
+                            val tracksCountText =
+                                "${playlist?.tracksCount} ${playlist?.tracksCount?.getWordTrackInCorrectView()}"
+                            tracksCount.text = tracksCountText
+                        }
+                    }
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                detailsPlaylistViewModel.showToast.collect {
+                    Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
                 }
             }
         }

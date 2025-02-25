@@ -92,9 +92,9 @@ class PlaylistRepositoryImpl(
         checkAndDeleteTrackFromAllPlaylists(trackId)
     }
 
-    override fun getPlaylistFromDb(playlistId: Int): Flow<Playlist> = flow {
-        val playlist = dataBase.getPlaylistDao().getPlaylistById(playlistId)
-        emit(playlistConvertor.map(playlist))
+    override suspend fun getPlaylistFromDb(playlistId: Int): Flow<Playlist?>  {
+        return dataBase.getPlaylistDao().getPlaylistByIdFlow(playlistId)
+            .map { if (it == null) null else playlistConvertor.map(it) }
     }
 
     override fun getAllTracksFromPlaylist(playlistId: Int): Flow<List<Track>?> {

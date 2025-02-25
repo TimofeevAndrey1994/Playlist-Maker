@@ -12,7 +12,7 @@ interface PlaylistInteractor {
 
     fun addTrackToPlaylist(track: Track, playlistId: Int): Flow<String?>
 
-    fun getPlaylistFromDb(playlistId: Int): Flow<Playlist>
+    suspend fun getPlaylistFromDb(playlistId: Int): Flow<Playlist?>
 
     fun getAllTracksFromPlaylist(playlistId: Int): Flow<Pair<List<Track>?, Int>>
 

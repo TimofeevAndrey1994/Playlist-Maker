@@ -1,7 +1,5 @@
 package com.example.playlistmaker.ui.playlist_details.view_model
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.domain.api.PlaylistInteractor
@@ -12,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class DetailsPlaylistViewModel(
@@ -20,8 +17,8 @@ class DetailsPlaylistViewModel(
     private val playlistInteractor: PlaylistInteractor
 ) : ViewModel() {
 
-    private val _currentPlaylist: MutableLiveData<Playlist> = MutableLiveData()
-    fun currentPlayList(): LiveData<Playlist> = _currentPlaylist
+    private val _currentPlaylist = MutableStateFlow<Playlist?>(null)
+    val currentPlayList: StateFlow<Playlist?> = _currentPlaylist
 
     private val _trackListInPlaylist =
         MutableStateFlow<Pair<List<Track>?, Int>>(Pair(emptyList(), 0))
@@ -36,8 +33,10 @@ class DetailsPlaylistViewModel(
     init {
         viewModelScope.launch {
             playlistInteractor.getPlaylistFromDb(playlistId).collect { playlist ->
-                _currentPlaylist.postValue(playlist)
+                _currentPlaylist.emit(playlist)
             }
+        }
+        viewModelScope.launch {
             playlistInteractor.getAllTracksFromPlaylist(playlistId).collect { pair ->
                 _trackListInPlaylist.value = pair
             }
@@ -46,7 +45,7 @@ class DetailsPlaylistViewModel(
 
     fun deleteTrackFromPlaylist(track: Track) {
         viewModelScope.launch {
-            playlistInteractor.deleteTrackFromPlaylist(track.trackId, _currentPlaylist.value!!.id)
+            playlistInteractor.deleteTrackFromPlaylist(track.trackId, _currentPlaylist.value?.id ?: 0)
         }
     }
 

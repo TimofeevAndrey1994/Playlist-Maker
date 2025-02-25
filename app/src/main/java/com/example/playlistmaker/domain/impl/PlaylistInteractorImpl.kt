@@ -7,6 +7,7 @@ import com.example.playlistmaker.domain.model.Playlist
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.Resource
 import com.example.playlistmaker.utils.convertToMilliseconds
+import com.example.playlistmaker.utils.getWordTrackInCorrectView
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
@@ -36,7 +37,7 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository,
         return playlistRepository.addTrackToPlaylist(track, playlistId)
     }
 
-    override fun getPlaylistFromDb(playlistId: Int): Flow<Playlist> {
+    override suspend fun getPlaylistFromDb(playlistId: Int): Flow<Playlist?> {
         return playlistRepository.getPlaylistFromDb(playlistId)
     }
 
@@ -63,7 +64,9 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository,
     }
 
     override fun sharePlaylist(playlistName: String, trackListInString: ArrayList<String>) {
-        val res = playlistName + "\n" + trackListInString.forEach{ it + "\n" }
+        val tracksCount = trackListInString.count()
+        var res = playlistName + "\n" + tracksCount.toString() + " " + tracksCount.getWordTrackInCorrectView() + "\n"
+        trackListInString.forEach{ res = res + it + "\n" }
         externalNavigator.sharePlaylist(res)
     }
 

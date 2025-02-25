@@ -50,4 +50,6 @@
     <string name="share">Поделиться</string>
     <string name="edit_information">Редактировать информацию</string>
     <string name="delete_playlist">Удалить плейлист</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
