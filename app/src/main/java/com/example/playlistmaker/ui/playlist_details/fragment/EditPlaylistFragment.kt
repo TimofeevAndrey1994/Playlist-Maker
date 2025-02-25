@@ -31,7 +31,11 @@ import org.koin.core.parameter.parametersOf
 
 class EditPlaylistFragment : BaseFragmentBinding<FragmentPlaylistEditBinding>() {
 
-    private val editPlaylistViewModel: EditPlaylistViewModel by viewModel{
+    private val isEditing: Boolean by lazy {
+        arguments != null
+    }
+
+    private val editPlaylistViewModel: EditPlaylistViewModel by viewModel {
         var id = 0
         arguments?.let {
             id = it.getInt(PLAYLIST_ID)
@@ -81,27 +85,36 @@ class EditPlaylistFragment : BaseFragmentBinding<FragmentPlaylistEditBinding>() 
 
         with(binding) {
             editPlaylistViewModel.currentPlaylist().observe(viewLifecycleOwner) { playlist ->
-                with(binding){
-                    Glide.with(root)
-                        .load(playlist.coverPath)
-                        .placeholder(R.drawable.ic_placeholder)
-                        .transform(CenterCrop(), RoundedCorners(16))
-                        .into(imageCover)
+                Glide.with(root)
+                    .load(playlist.coverPath)
+                    .placeholder(R.drawable.ic_placeholder)
+                    .transform(CenterCrop(), RoundedCorners(16))
+                    .into(imageCover)
 
-                    selectedUri = playlist.coverPath?.toUri()
+                selectedUri = playlist.coverPath?.toUri()
 
-                    etPlaylistName.setText(playlist.playlistTitle)
-                    etPlaylistAbout.setText(playlist.playListDescription)
-                }
+                etPlaylistName.setText(playlist.playlistTitle)
+                etPlaylistAbout.setText(playlist.playListDescription)
             }
 
             btnCreatePlaylist.isEnabled = (etPlaylistName.text.isNotEmpty())
 
             etPlaylistName.addTextChangedListener(textWatcher)
 
+            with(requireContext()){
+                if (isEditing) {
+                    btnCreatePlaylist.text = getString(R.string.save_playlist)
+                    createPlaylistTitle.text = getString(R.string.editing)
+                }
+                else {
+                    btnCreatePlaylist.text = getString(R.string.create)
+                    createPlaylistTitle.text = getString(R.string.create_new_playlist)
+                }
+            }
+
             btnCreatePlaylist.setOnClickListener {
                 editPlaylistViewModel.createOrUpdatePlaylist(
-                    binding.etPlaylistName.text.toString(),
+                    etPlaylistName.text.toString(),
                     etPlaylistAbout.text.toString(),
                     selectedUri
                 )
