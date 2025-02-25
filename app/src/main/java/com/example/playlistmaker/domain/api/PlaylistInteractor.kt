@@ -19,4 +19,6 @@ interface PlaylistInteractor {
     suspend fun deleteTrackFromPlaylist(trackId: Long, playlistId: Int)
 
     suspend fun deletePlaylist(playlist: Playlist)
+
+    fun sharePlaylist(playlistName: String, trackListInString: ArrayList<String>)
 }

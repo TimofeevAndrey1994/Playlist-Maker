@@ -123,6 +123,11 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
             ivContextMenu.setOnClickListener {
                 bottomSheetBehaviorMenu.state = BottomSheetBehavior.STATE_COLLAPSED
             }
+
+            ivSharePlaylist.setOnClickListener {
+                detailsPlaylistViewModel.sharePlaylist()
+            }
+
             deletePlaylist.setOnClickListener{
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Хотите удалить плейлист?")

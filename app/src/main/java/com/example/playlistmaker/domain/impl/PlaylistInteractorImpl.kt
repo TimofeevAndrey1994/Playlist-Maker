@@ -1,5 +1,6 @@
 package com.example.playlistmaker.domain.impl
 
+import com.example.playlistmaker.domain.api.ExternalNavigator
 import com.example.playlistmaker.domain.api.PlaylistInteractor
 import com.example.playlistmaker.domain.api.PlaylistRepository
 import com.example.playlistmaker.domain.model.Playlist
@@ -10,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 
-class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository) :
+class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository, private val externalNavigator: ExternalNavigator) :
     PlaylistInteractor {
     override suspend fun savePlaylistToDb(playlist: Playlist) {
         playlistRepository.savePlaylistToDb(playlist)
@@ -59,6 +60,11 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository)
 
     override suspend fun deletePlaylist(playlist: Playlist) {
         playlistRepository.deletePlaylist(playlist)
+    }
+
+    override fun sharePlaylist(playlistName: String, trackListInString: ArrayList<String>) {
+        val res = playlistName + "\n" + trackListInString.forEach{ it + "\n" }
+        externalNavigator.sharePlaylist(res)
     }
 
 }
