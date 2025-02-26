@@ -69,8 +69,12 @@ class DetailsPlaylistViewModel(
         }
         else {
             viewModelScope.launch {
-                _showToast.emit("В этом плейлисте нет списка треков, которым можно поделиться")
+                _showToast.emit(THERE_IS_NO_TRACKS_FOR_SHARE)
             }
         }
+    }
+
+    companion object {
+        private const val THERE_IS_NO_TRACKS_FOR_SHARE = "В этом плейлисте нет списка треков, которым можно поделиться"
     }
 }

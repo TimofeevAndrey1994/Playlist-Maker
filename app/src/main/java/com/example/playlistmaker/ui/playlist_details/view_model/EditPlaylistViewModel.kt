@@ -33,7 +33,7 @@ class EditPlaylistViewModel(private val playlistId: Int?, private val playlistIn
 
     fun createOrUpdatePlaylist(title: String, description: String?, imageUri: Uri?) {
         viewModelScope.launch {
-            _showToast.emit("Плейлист $title был создан!")
+            _showToast.emit(String.format(PLAYLIST_ALREADY_WAS_CREATED, title))
             playlistInteractor.savePlaylistToDb(
                 Playlist(
                     id = playlistId ?: 0,
@@ -44,5 +44,9 @@ class EditPlaylistViewModel(private val playlistId: Int?, private val playlistIn
                 )
             )
         }
+    }
+
+    companion object {
+        private const val PLAYLIST_ALREADY_WAS_CREATED = "Плейлист %s был создан!"
     }
 }

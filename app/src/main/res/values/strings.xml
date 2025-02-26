@@ -52,4 +52,9 @@
     <string name="delete_playlist">Удалить плейлист</string>
     <string name="save_playlist">Сохранить</string>
     <string name="editing">Редактирование</string>
+    <string name="wanna_delete_playlist">Хотите удалить плейлист?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="to_delete">Удалить</string>
+    <string name="wanna_delete_track_from_playlist">Вы уверены, что хотите удалить трек из плейлиста?</string>
 </resources>

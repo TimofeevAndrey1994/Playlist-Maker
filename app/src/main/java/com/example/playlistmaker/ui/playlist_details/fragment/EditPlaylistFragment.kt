@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.bundle.bundleOf
@@ -34,7 +35,13 @@ class EditPlaylistFragment : BaseFragmentBinding<FragmentPlaylistEditBinding>() 
     private val isEditing: Boolean by lazy {
         arguments != null
     }
-
+    
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            backPressed()
+        }
+    }
+    
     private val editPlaylistViewModel: EditPlaylistViewModel by viewModel {
         var id = 0
         arguments?.let {
@@ -65,6 +72,8 @@ class EditPlaylistFragment : BaseFragmentBinding<FragmentPlaylistEditBinding>() 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
         textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -126,37 +135,49 @@ class EditPlaylistFragment : BaseFragmentBinding<FragmentPlaylistEditBinding>() 
             }
 
             arrowBackCreatePlaylist.setOnClickListener {
-                if ((selectedUri != null) or (etPlaylistName.text.isNotEmpty()) or (etPlaylistAbout.text.isNotEmpty())) {
-                    MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(requireContext().getString(R.string.wanna_to_finish_creating))
-                        .setMessage(requireContext().getString(R.string.all_unsaved_data_will_be_lose))
-                        .setNeutralButton(requireContext().getString(R.string.cancel)) { _, _ ->
-
-                        }
-                        .setPositiveButton(requireContext().getString(R.string.done)) { _, _ ->
-                            findNavController().navigateUp()
-                        }
-                        .show()
-                } else {
-                    findNavController().navigateUp()
-                }
+                backPressed()
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
+        onBackPressedCallback.isEnabled = true
         requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
     }
 
     override fun onPause() {
         super.onPause()
+        onBackPressedCallback.isEnabled = false
         requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         textWatcher = null
+    }
+
+    private fun backPressed() {
+        if (isEditing) {
+            findNavController().navigateUp()
+            return
+        }
+        with(binding){
+            if ((selectedUri != null) or (etPlaylistName.text.isNotEmpty()) or (etPlaylistAbout.text.isNotEmpty())) {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(requireContext().getString(R.string.wanna_to_finish_creating))
+                    .setMessage(requireContext().getString(R.string.all_unsaved_data_will_be_lose))
+                    .setNeutralButton(requireContext().getString(R.string.cancel)) { _, _ ->
+
+                    }
+                    .setPositiveButton(requireContext().getString(R.string.done)) { _, _ ->
+                        findNavController().navigateUp()
+                    }
+                    .show()
+            } else {
+                findNavController().navigateUp()
+            }
+        }
     }
 
     companion object {

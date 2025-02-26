@@ -57,11 +57,11 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
 
         trackAdapter.setOnItemLongClickListener { track ->
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Вы уверены, что хотите удалить трек из плейлиста?")
-                .setPositiveButton("Удалить") { _, _ ->
+                .setTitle(R.string.wanna_delete_track_from_playlist)
+                .setPositiveButton(R.string.to_delete) { _, _ ->
                     detailsPlaylistViewModel.deleteTrackFromPlaylist(track)
                 }
-                .setNeutralButton("Отмена") { _, _ ->
+                .setNeutralButton(R.string.cancel) { _, _ ->
 
                 }
                 .show()
@@ -106,11 +106,11 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
 
             deletePlaylist.setOnClickListener {
                 MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Хотите удалить плейлист?")
-                    .setNegativeButton("Нет") { _, _ ->
+                    .setTitle(R.string.wanna_delete_playlist)
+                    .setNegativeButton(R.string.no) { _, _ ->
 
                     }
-                    .setPositiveButton("Да") { _, _ ->
+                    .setPositiveButton(R.string.yes) { _, _ ->
                         detailsPlaylistViewModel.deletePlaylist()
                     }
                     .show()
