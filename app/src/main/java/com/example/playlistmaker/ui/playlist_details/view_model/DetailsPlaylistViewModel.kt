@@ -30,6 +30,9 @@ class DetailsPlaylistViewModel(
     private val _showToast = MutableSharedFlow<String>()
     val showToast: SharedFlow<String> = _showToast.asSharedFlow()
 
+    private val _isTrackListIsEmpty = MutableStateFlow<Boolean?>(null)
+    val isTrackListIsEmpty: StateFlow<Boolean?> = _isTrackListIsEmpty
+
     init {
         viewModelScope.launch {
             playlistInteractor.getPlaylistFromDb(playlistId).collect { playlist ->
@@ -39,6 +42,9 @@ class DetailsPlaylistViewModel(
         viewModelScope.launch {
             playlistInteractor.getAllTracksFromPlaylist(playlistId).collect { pair ->
                 _trackListInPlaylist.value = pair
+                if (_isTrackListIsEmpty.value == null) {
+                    _isTrackListIsEmpty.value = pair.first?.isEmpty()
+                }
             }
         }
     }
@@ -59,7 +65,7 @@ class DetailsPlaylistViewModel(
     fun sharePlaylist() {
         if (_trackListInPlaylist.value.first?.isNotEmpty() == true) {
             val trackListString = _trackListInPlaylist.value.first?.mapIndexed { i, value ->
-                "$i. ${value.trackName} - ${value.artistName} ${value.trackTime}"
+                "[${i + 1}]. [${value.trackName}] - [${value.artistName}] [${value.trackTime}]"
             }
 
             playlistInteractor.sharePlaylist(

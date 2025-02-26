@@ -185,7 +185,7 @@
             layout="@layout/linelar_playlist_item" />
 
         <TextView
-            android:id="@+id/textViewSharePlaylist"
+            android:id="@+id/text_view_share_playlist"
             style="@style/item_settings_style"
             android:layout_marginTop="8dp"
             android:text="@string/share" />

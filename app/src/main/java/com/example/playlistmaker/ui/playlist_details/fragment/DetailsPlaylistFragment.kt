@@ -122,6 +122,9 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
                     EditPlaylistFragment.createArgs(requireArguments().getInt(PLAYLIST_ID))
                 )
             }
+            textViewSharePlaylist.setOnClickListener {
+                detailsPlaylistViewModel.sharePlaylist()
+            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -151,7 +154,7 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 detailsPlaylistViewModel.currentPlayList.collect { playlist ->
-                    with(binding){
+                    with(binding) {
                         Glide.with(root)
                             .load(playlist?.coverPath)
                             .placeholder(R.drawable.empty_playlist_cover)
@@ -163,8 +166,7 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
                         if (playlist?.playListDescription?.isNotEmpty() == true) {
                             tvPlaylistDescription.text = playlist.playListDescription
                             tvPlaylistDescription.isVisible = true
-                        }
-                        else {
+                        } else {
                             tvPlaylistDescription.text = ""
                         }
 
@@ -189,6 +191,19 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 detailsPlaylistViewModel.showToast.collect {
                     Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                detailsPlaylistViewModel.isTrackListIsEmpty.collect { value ->
+                    if ((value != null) and (value == true)) {
+                        Toast.makeText(
+                            requireContext(),
+                            "В плейлисте нет добавленных треков!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
         }

@@ -112,7 +112,7 @@ class PlaylistRepositoryImpl(
                             trackArrayList.add(trackConvertor.mapToTrack(trackInPlaylistEntity!!))
                         }
                     }
-                    emit(trackArrayList)
+                    emit(trackArrayList.reversed())
                 } else {
                     emit(emptyList())
                 }
