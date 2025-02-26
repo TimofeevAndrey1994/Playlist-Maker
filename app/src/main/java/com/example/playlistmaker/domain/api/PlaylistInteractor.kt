@@ -12,4 +12,13 @@ interface PlaylistInteractor {
 
     fun addTrackToPlaylist(track: Track, playlistId: Int): Flow<String?>
 
+    suspend fun getPlaylistFromDb(playlistId: Int): Flow<Playlist?>
+
+    fun getAllTracksFromPlaylist(playlistId: Int): Flow<Pair<List<Track>?, Int>>
+
+    suspend fun deleteTrackFromPlaylist(trackId: Long, playlistId: Int)
+
+    suspend fun deletePlaylist(playlist: Playlist)
+
+    fun sharePlaylist(playlistName: String, trackListInString: ArrayList<String>)
 }

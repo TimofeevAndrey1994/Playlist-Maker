@@ -9,7 +9,7 @@ import com.example.playlistmaker.databinding.PlaylistItemBinding
 import com.example.playlistmaker.domain.model.Playlist
 import com.example.playlistmaker.utils.getWordTrackInCorrectView
 
-class PlaylistViewHolder(private val binding: PlaylistItemBinding): RecyclerView.ViewHolder(binding.root) {
+class PlaylistViewHolder(val binding: PlaylistItemBinding): RecyclerView.ViewHolder(binding.root) {
 
     fun bind(model: Playlist){
         with(binding){

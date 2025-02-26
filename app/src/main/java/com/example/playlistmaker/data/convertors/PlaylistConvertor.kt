@@ -7,10 +7,11 @@ class PlaylistConvertor {
 
     fun map(playlist: Playlist): PlaylistEntity {
         return PlaylistEntity(
+            id = playlist.id,
             playlistTitle = playlist.playlistTitle,
-            playListDescription = playlist.playListDescription,
+            playListDescription = if (playlist.playListDescription == "") null else playlist.playListDescription,
             coverPath = playlist.coverPath,
-            trackList = ""
+            trackList = playlist.trackList ?: ""
         )
     }
 

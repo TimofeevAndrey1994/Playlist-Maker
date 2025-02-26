@@ -1,16 +1,12 @@
 package com.example.playlistmaker.ui.playlist_details.fragment
 
-import android.net.Uri
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Toast
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -21,26 +17,26 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.FragmentPlaylistDetailsBinding
 import com.example.playlistmaker.ui.base.BaseFragmentBinding
+import com.example.playlistmaker.ui.media_player.fragments.MediaPlayerFragment
 import com.example.playlistmaker.ui.playlist_details.view_model.DetailsPlaylistViewModel
+import com.example.playlistmaker.ui.search.recycler_view.TrackAdapter
+import com.example.playlistmaker.utils.getWordMinuteInCorrectView
+import com.example.playlistmaker.utils.getWordTrackInCorrectView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 
 class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBinding>() {
 
-    private val detailsPlaylistViewModel: DetailsPlaylistViewModel by viewModel()
-    private var textWatcher: TextWatcher? = null
+    private val detailsPlaylistViewModel: DetailsPlaylistViewModel by viewModel {
+        val playlistId = requireArguments().getInt(PLAYLIST_ID, -1)
+        parametersOf(playlistId)
+    }
 
-    private var selectedUri: Uri? = null
-
-    private val activityResultLauncher =
-        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            selectedUri = uri
-            Glide.with(requireContext())
-                .load(uri)
-                .transform(CenterCrop(), RoundedCorners(16))
-                .into(binding.imageCover)
-        }
+    private val trackAdapter = TrackAdapter()
 
     override fun onCreateBinding(
         inflater: LayoutInflater,
@@ -52,72 +48,170 @@ class DetailsPlaylistFragment : BaseFragmentBinding<FragmentPlaylistDetailsBindi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        textWatcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                binding.btnCreatePlaylist.isEnabled = (count > 0)
+        trackAdapter.setOnItemClickListener { track ->
+            findNavController().navigate(
+                R.id.action_detailsPlaylistFragment_to_mediaPlayerFragment,
+                MediaPlayerFragment.createArgs(track.trackId)
+            )
+        }
+
+        trackAdapter.setOnItemLongClickListener { track ->
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.wanna_delete_track_from_playlist)
+                .setPositiveButton(R.string.to_delete) { _, _ ->
+                    detailsPlaylistViewModel.deleteTrackFromPlaylist(track)
+                }
+                .setNeutralButton(R.string.cancel) { _, _ ->
+
+                }
+                .show()
+        }
+
+        val bottomSheetBehaviorMenu =
+            BottomSheetBehavior.from(binding.playlistMenuBottomSheet).apply {
+                state = BottomSheetBehavior.STATE_HIDDEN
             }
 
-            override fun afterTextChanged(s: Editable?) {}
+        bottomSheetBehaviorMenu.addBottomSheetCallback(object : BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                when (newState) {
+                    BottomSheetBehavior.STATE_HIDDEN -> {
+                        binding.overlay.visibility = View.GONE
+                        binding.playlistsBottomSheet.isVisible = true
+                    }
+
+                    else -> {
+                        binding.overlay.visibility = View.VISIBLE
+                        binding.playlistsBottomSheet.isVisible = false
+                    }
+
+                }
+            }
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+        })
+
+        with(binding) {
+            tvPlaylistDescription.isVisible = false
+            arrowBackFromDetailsPlaylist.setOnClickListener {
+                findNavController().navigateUp()
+            }
+            ivContextMenu.setOnClickListener {
+                bottomSheetBehaviorMenu.state = BottomSheetBehavior.STATE_COLLAPSED
+            }
+
+            ivSharePlaylist.setOnClickListener {
+                detailsPlaylistViewModel.sharePlaylist()
+            }
+
+            deletePlaylist.setOnClickListener {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.wanna_delete_playlist)
+                    .setNegativeButton(R.string.no) { _, _ ->
+
+                    }
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        detailsPlaylistViewModel.deletePlaylist()
+                    }
+                    .show()
+            }
+
+            editPlaylistInformation.setOnClickListener {
+                findNavController().navigate(
+                    R.id.action_detailsPlaylistFragment_to_editPlaylistFragment,
+                    EditPlaylistFragment.createArgs(requireArguments().getInt(PLAYLIST_ID))
+                )
+            }
+            textViewSharePlaylist.setOnClickListener {
+                detailsPlaylistViewModel.sharePlaylist()
+            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                detailsPlaylistViewModel.showToast.collect { value ->
-                    Toast.makeText(requireContext(), value, Toast.LENGTH_SHORT).show()
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                detailsPlaylistViewModel.trackListInPlaylist.collect { pair ->
+                    val trackList = pair.first
+                    val duration = pair.second
+                    trackAdapter.addAll(trackList ?: emptyList())
+                    binding.tvPlaylistDurationInMin.text =
+                        String.format("%s %s", duration, duration.getWordMinuteInCorrectView())
+                    val tracksCountText =
+                        "${trackList?.count()} ${trackList?.count()?.getWordTrackInCorrectView()}"
+                    binding.tvPlaylistTracksCount.text = tracksCountText
+                    binding.linelarItemPlaylist.tracksCount.text = tracksCountText
                 }
             }
         }
-
-        with(binding) {
-            btnCreatePlaylist.isEnabled = (etPlaylistName.text.isNotEmpty())
-
-            etPlaylistName.addTextChangedListener(textWatcher)
-
-            btnCreatePlaylist.setOnClickListener {
-                detailsPlaylistViewModel.createPlaylist(
-                    binding.etPlaylistName.text.toString(),
-                    etPlaylistAbout.text.toString(),
-                    selectedUri
-                )
-                findNavController().navigateUp()
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                detailsPlaylistViewModel.playlistDeleted.collect {
+                    if (it) {
+                        findNavController().navigateUp()
+                    }
+                }
             }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                detailsPlaylistViewModel.currentPlayList.collect { playlist ->
+                    with(binding) {
+                        Glide.with(root)
+                            .load(playlist?.coverPath)
+                            .placeholder(R.drawable.empty_playlist_cover)
+                            .transform(CenterCrop())
+                            .into(imageCover)
 
-            imageCover.setOnClickListener {
-                activityResultLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        tvPlaylistTitle.text = playlist?.playlistTitle
+
+                        if (playlist?.playListDescription?.isNotEmpty() == true) {
+                            tvPlaylistDescription.text = playlist.playListDescription
+                            tvPlaylistDescription.isVisible = true
+                        } else {
+                            tvPlaylistDescription.text = ""
+                        }
+
+                        rvTrackList.adapter = trackAdapter
+
+                        with(linelarItemPlaylist) {
+                            Glide.with(requireContext())
+                                .load(playlist?.coverPath)
+                                .placeholder(R.drawable.ic_placeholder)
+                                .transform(CenterCrop(), RoundedCorners(2))
+                                .into(playlistCover)
+                            playlistTitle.text = playlist?.playlistTitle
+                            val tracksCountText =
+                                "${playlist?.tracksCount} ${playlist?.tracksCount?.getWordTrackInCorrectView()}"
+                            tracksCount.text = tracksCountText
+                        }
+                    }
+                }
             }
-
-            arrowBackCreatePlaylist.setOnClickListener {
-                if ((selectedUri != null) or (etPlaylistName.text.isNotEmpty()) or (etPlaylistAbout.text.isNotEmpty())) {
-                    MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(requireContext().getString(R.string.wanna_to_finish_creating))
-                        .setMessage(requireContext().getString(R.string.all_unsaved_data_will_be_lose))
-                        .setNeutralButton(requireContext().getString(R.string.cancel)) { _, _ ->
-
-                        }
-                        .setPositiveButton(requireContext().getString(R.string.done)) { _, _ ->
-                            findNavController().navigateUp()
-                        }
-                        .show()
-                } else {
-                    findNavController().navigateUp()
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                detailsPlaylistViewModel.showToast.collect {
+                    Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                detailsPlaylistViewModel.isTrackListIsEmpty.collect { value ->
+                    if ((value != null) and (value == true)) {
+                        Toast.makeText(
+                            requireContext(),
+                            "В плейлисте нет добавленных треков!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
-    }
+    companion object {
+        private const val PLAYLIST_ID = "PLAYLIST_ID"
 
-    override fun onPause() {
-        super.onPause()
-        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        textWatcher = null
+        fun createArgs(playlistId: Int) = bundleOf(PLAYLIST_ID to playlistId)
     }
 }

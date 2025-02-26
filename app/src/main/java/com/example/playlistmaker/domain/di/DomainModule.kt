@@ -26,6 +26,6 @@ val domainModule = module {
         MediaPlayerInteractorImpl(get())
     }
     single<PlaylistInteractor> {
-        PlaylistInteractorImpl(get())
+        PlaylistInteractorImpl(get(), get())
     }
 }

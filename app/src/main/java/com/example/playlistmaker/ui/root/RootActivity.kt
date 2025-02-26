@@ -11,7 +11,7 @@ import com.example.playlistmaker.databinding.ActivityRootBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class RootActivity: AppCompatActivity() {
+class RootActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRootBinding
 
@@ -22,17 +22,23 @@ class RootActivity: AppCompatActivity() {
         binding = ActivityRootBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view) as NavHostFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container_view) as NavHostFragment
         val navController = navHostFragment.navController
 
         navController.addOnDestinationChangedListener { _, dest, _ ->
-            val setOfInvisibleBottomNavFragments = arrayOf(R.id.mediaPlayerFragment, R.id.detailsPlaylistFragment)
-            binding.bottomNavigationView.isVisible = !setOfInvisibleBottomNavFragments.contains(dest.id)
+            val setOfInvisibleBottomNavFragments = arrayOf(
+                R.id.mediaPlayerFragment,
+                R.id.editPlaylistFragment,
+                R.id.detailsPlaylistFragment
+            )
+            binding.bottomNavigationView.isVisible =
+                !setOfInvisibleBottomNavFragments.contains(dest.id)
         }
         binding.bottomNavigationView.setupWithNavController(navController)
     }
 
-    fun itemClickWithDebounce(): Boolean{
+    fun itemClickWithDebounce(): Boolean {
         val current = isClickAllowed
         if (isClickAllowed) {
             lifecycleScope.launch {
