@@ -12,6 +12,9 @@ import java.io.FileOutputStream
 class InternalStorageManagerImpl(private val context: Context): InternalStorageManager {
 
     override fun saveImageToInternalStorage(imageUri: Uri): Uri {
+        if (imageUri.toString().contains("file")) {
+            return imageUri
+        }
         //создаём экземпляр класса File, который указывает на нужный каталог
         val filePath =
             File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "playListCovers")
@@ -33,5 +36,4 @@ class InternalStorageManagerImpl(private val context: Context): InternalStorageM
 
         return file.toUri()
     }
-
 }

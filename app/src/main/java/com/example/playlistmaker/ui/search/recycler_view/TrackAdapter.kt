@@ -8,6 +8,7 @@ import com.example.playlistmaker.domain.model.Track
 
 class TrackAdapter: RecyclerView.Adapter<TrackViewHolder> () {
     private var onItemClickListener: OnItemClickListener? = null
+    private var onItemLongClickListener: OnItemLongClickListener? = null
     private val trackList: ArrayList<Track> = ArrayList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
@@ -20,6 +21,12 @@ class TrackAdapter: RecyclerView.Adapter<TrackViewHolder> () {
     }
 
     override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
+        if (onItemLongClickListener!=null) {
+            holder.binding.root.setOnLongClickListener {
+                onItemLongClickListener!!.onItemLongClick(trackList[position])
+                true
+            }
+        }
         if (onItemClickListener!=null) {
             holder.binding.root.setOnClickListener {
                 onItemClickListener!!.onItemClick(trackList[position])
@@ -45,8 +52,16 @@ class TrackAdapter: RecyclerView.Adapter<TrackViewHolder> () {
         this.onItemClickListener = onItemClickListener
     }
 
+    fun setOnItemLongClickListener(onItemLongClickListener: OnItemLongClickListener){
+        this.onItemLongClickListener = onItemLongClickListener
+    }
+
 }
 
 fun interface OnItemClickListener {
     fun onItemClick(track: Track)
+}
+
+fun interface OnItemLongClickListener {
+    fun onItemLongClick(track: Track)
 }
