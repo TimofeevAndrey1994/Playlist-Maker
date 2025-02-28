@@ -1,6 +1,7 @@
 package com.example.playlistmaker.data.impl
 
 import android.content.Context
+import androidx.core.bundle.bundleOf
 import com.example.playlistmaker.R
 import com.example.playlistmaker.data.convertors.TrackConvertor
 import com.example.playlistmaker.data.db.AppDataBase
@@ -12,6 +13,7 @@ import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.utils.Resource
 import com.example.playlistmaker.utils.tryToLong
+import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -27,7 +29,8 @@ class TrackRepositoryImpl(
     private val tracksLocalStorage: TracksLocalStorage,
     private val context: Context,
     private val dataBase: AppDataBase,
-    private val trackConvertor: TrackConvertor
+    private val trackConvertor: TrackConvertor,
+    private val analitics: FirebaseAnalytics
 ) : TracksRepository {
 
     override fun getTrackFromLocalStorageById(trackId: Long): Flow<Track?> {
@@ -96,6 +99,7 @@ class TrackRepositoryImpl(
     override suspend fun saveTrackToFavouriteTable(track: Track) {
         dataBase.getTrackDao()
             .saveTrackToFavouriteTable(trackConvertor.map(track).apply { addedDate = Date().time })
+        analitics.logEvent("AddTrackToFavouriteList", bundleOf("track_name" to track.trackName))
     }
 
     override suspend fun deleteTrackFromFavouriteTable(track: Track) {

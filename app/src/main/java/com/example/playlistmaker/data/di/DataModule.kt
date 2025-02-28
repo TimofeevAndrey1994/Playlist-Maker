@@ -25,6 +25,7 @@ import com.example.playlistmaker.data.track_local_storage.TracksLocalStorageMana
 import com.example.playlistmaker.domain.api.PlaylistRepository
 import com.example.playlistmaker.domain.api.SettingsDataRepository
 import com.example.playlistmaker.domain.api.TracksRepository
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -33,7 +34,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 val dataModule = module {
     single<TracksRepository> {
-        TrackRepositoryImpl(get(), get(), get(), get(), get())
+        TrackRepositoryImpl(get(), get(), get(), get(), get(), FirebaseAnalytics.getInstance(androidContext()))
     }
     single<PlaylistRepository> {
         PlaylistRepositoryImpl(get(), get(), get(), get(), get())

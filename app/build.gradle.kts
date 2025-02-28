@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -31,8 +32,6 @@ android {
             )
         }
         debug {
-            applicationIdSuffix=".debug"
-
             isMinifyEnabled = false
         }
     }
@@ -47,6 +46,8 @@ android {
 
 dependencies {
 
+    implementation(libs.firebase.analytics)
+    implementation(platform(libs.firebase.bom))
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
