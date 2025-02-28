@@ -30,8 +30,8 @@ class MediaPlayerViewModel(
 
     private var updateTimeJob: Job? = null
 
-    private val currentTrack = MutableLiveData<Track>(null)
-    fun observeCurrentTrack(): LiveData<Track> = currentTrack
+    private val currentTrack = MutableLiveData<Track?>(null)
+    fun observeCurrentTrack(): LiveData<Track?> = currentTrack
 
     private var currentTrackTime = MutableLiveData<String>()
     fun observeCurrentTrackTime(): LiveData<String> = currentTrackTime
